@@ -52,8 +52,7 @@ if (listeners) {
 }
 ```
 
-> initRender src\core\instance\render.js<br> >$slots $scopedSlots 初始化<br> >$createElement函数声明<br>
->$attrs \$listeners 响应化<br>
+> initRender src\core\instance\render.js<br>$slots $scopedSlots 初始化<br>$createElement函数声明<br>$attrs/\$listeners 响应化
 
 ```js
 vm._vnode = null // the root of the child tree
