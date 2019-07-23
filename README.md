@@ -177,11 +177,11 @@ Provide 注入
 
 ### stateMixin(Vue)
 
-定义只读属性$data和$props
+定义只读属性\$data和\$props
 
-定义$set和$delete
+定义\$set和\$delete
 
-定义$watch
+定义\$watch
 
 ```js
 // ---------------------- src\core\instance\state.js ----------------------
@@ -209,7 +209,7 @@ Vue.prototype.$watch = function(
 
 ### eventsMixin(Vue)
 
-实现事件相关实例api：$on,$emit,$off,$once
+实现事件相关实例api：\$on,\$emit,\$off,\$once
 
 ```js
 // ---------------------- src\core\instance\events.js ----------------------
@@ -231,7 +231,7 @@ Vue.prototype.$emit = function(event: string): Component {}
 
 ### lifecycleMixin(Vue)
 
-实现组件生命周期相关的三个核心实例api：_update,$forceUpdate,$destroy
+实现组件生命周期相关的三个核心实例api：_update,\$forceUpdate,\$destroy
 
 ```js
 // ---------------------- src\core\instance\lifecycle.js ----------------------
@@ -610,12 +610,15 @@ export default class Watcher {
 }
 ```
 
-> vue 中的数据响应化使用了观察者模式：<br>
+> vue 中的数据响应化使用了观察者模式：
 >
 > - defineReactive 中的 getter 和 setter 对应着订阅和发布应为
 > - Dep 的角色相当于主题 Subject，维护订阅者、通知观察者更新
 > - Watcher 的角色相当于观察者 Observer，执行更新
 > - 但是 vue 里面的 Observer 不是上面说的观察者，它和 data 中对象一一对应，有内嵌的对象就会有 child Observer 与之对应
+
+![](https://upload-images.jianshu.io/upload_images/16753277-d87383e36299c6fd.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
 
 ### \$watch
 
