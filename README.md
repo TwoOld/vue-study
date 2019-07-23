@@ -7,7 +7,7 @@
 - src\core\index.js initGlobalAPI 实现全局api
 - src\core\instance\index.js Vue构造函数
 initMixin 实现_init
-```
+```js
 // 初始化
     vm._self = vm
     initLifecycle(vm)
@@ -21,7 +21,7 @@ initMixin 实现_init
 ```
 >initLifecycle(vm) src\core\instance\lifecycle.js<br>
 >把组件实例里面用到的常用属性初始化，比如$parent/$root/$children
-```
+```js
   vm.$parent = parent
   vm.$root = parent ? parent.$root : vm
 
@@ -37,7 +37,7 @@ initMixin 实现_init
 ```
 >initEvents src\core\instance\events.js<br>
 >父组件传递的需要处理的事件 ps:事件的监听者实际是子组件
-```
+```js
   vm._events = Object.create(null)
   vm._hasHookEvent = false
   // init parent attached events
@@ -50,7 +50,7 @@ initMixin 实现_init
 >$slots $scopedSlots初始化<br>
 >$createElement函数声明<br>
 >$attrs $listeners响应化<br>
-```
+```js
   vm._vnode = null // the root of the child tree
   vm._staticTrees = null // v-once cached trees
   const options = vm.$options
@@ -86,7 +86,7 @@ initMixin 实现_init
 
 >initState src\core\instance\state.js<br>
 >执行各种数据状态初始化，包括数据响应化等
-```
+```js
   vm._watchers = []
 //   初始化所有属性
   const opts = vm.$options
@@ -110,7 +110,7 @@ initMixin 实现_init
 >Provide 注入
 
 stateMixin
-```
+```js
 //   定义只读属性$data和$props
   const dataDef = {}
   dataDef.get = function () { return this._data }
@@ -173,7 +173,7 @@ Vue 1.0中有细粒度的数据变化侦测，每一个属性对应一个Watcher
 - modules
 >modules 定义了虚拟dom更新 => dom操作转换方法
 
-```
+```js
 // VNode对象共有6种类型：元素、组件、函数式组件、文本、注释和克隆节点
 // 静态节点可作为克隆节点，因为不会有变化 <h1>Hello</h1>
 export default class VNode {
@@ -201,7 +201,7 @@ patch将新老VNode节点进行比对（diff算法），然后根据比较结果
 首先说一下patch的核心diff算法：通过同层的树节点进行比较而非对树进行逐层搜索遍历的方式，所以时间复杂度只有O(n)，是一种相当高效的算法。
 
 同层级只做三件事：增删改。具体规则是：new VNode不存在就删；old VNode不存在就增；都存在就比较类型，类型不同直接替换、类型相同执行更新
-```
+```js
 return function patch (oldVnode, vnode, hydrating, removeOnly) {
     // vnode新节点不存在就删
     if (isUndef(vnode)) {
@@ -268,7 +268,7 @@ patchVnode具体规则如下：
 - 如果老节点没有子节点而新节点存在子节点，先清空老节点DOM的文本内容，然后为当前DOM节点加入子节点
 - 当新节点没有子节点而老节点有子节点的时候，则移除该DOM节点的所有子节点
 - 当新老节点都无子节点的时候，只是文本的替换
-```
+```js
 function patchVnode(
     oldVnode,
     vnode,
@@ -402,7 +402,7 @@ addVnodes。
 
 ![](https://upload-images.jianshu.io/upload_images/16753277-5f4690c86b2d4338.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
-```
+```js
 function updateChildren(parentElm, oldCh, newCh, insertedVnodeQueue, removeOnly) {
     let oldStartIdx = 0
     let newStartIdx = 0
@@ -495,7 +495,7 @@ function updateChildren(parentElm, oldCh, newCh, insertedVnodeQueue, removeOnly)
 ```
 # 属性相关dom操作
 原理是将属性相关dom操作按vdom hooks归类，在patchVnode时一起执行
-```
+```js
 const hooks = ['create', 'activate', 'update', 'remove', 'destroy']
 export function createPatchFunction(backend) {
   let i, j
