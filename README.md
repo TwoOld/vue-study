@@ -98,14 +98,10 @@ const renderContext = parentVnode && parentVnode.context
 // 处理插槽
 vm.$slots = resolveSlots(options._renderChildren, renderContext)
 vm.$scopedSlots = emptyObject
-// bind the createElement fn to this instance
-// so that we get proper render context inside it.
-// args order: tag, data, children, normalizationType, alwaysNormalize
-// internal version is used by render functions compiled from templates
+
 // 把createElement函数挂载到当前组件上，编译器使用
 vm._c = (a, b, c, d) => createElement(vm, a, b, c, d, false)
-// normalization is always applied for the public version, used in
-// user-written render functions.
+
 // 用户编写的渲染函数使用这个
 vm.$createElement = (a, b, c, d) => createElement(vm, a, b, c, d, true)
 
@@ -259,7 +255,7 @@ Vue.prototype.$destroy = function() {}
 
 ### renderMixin(Vue)
 
-实现$nextTick及_render函数
+实现\$nextTick及_render函数
 
 ```js
 // ---------------------- src\core\instance\render.js ----------------------
@@ -356,7 +352,6 @@ function initData(vm: Component) {
         vm
       )
   }
-  // proxy data on instance
   // 代理数据
   const keys = Object.keys(data)
   const props = vm.$options.props
@@ -371,7 +366,6 @@ function initData(vm: Component) {
       proxy(vm, `_data`, key)
     }
   }
-  // observe data
   // 数据响应化
   observe(data, true /* asRootData */)
 }
@@ -388,7 +382,7 @@ export function observe(value: any, asRootData: ?boolean): Observer | void {
   if (!isObject(value) || value instanceof VNode) {
     return
   }
-  // 有就返回，没有新建
+  // 有则返回，没有新建
   let ob: Observer | void
   if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
     ob = value.__ob__
@@ -477,7 +471,6 @@ export function defineReactive(
     return
   }
 
-  // cater for pre-defined getter/setters
   const getter = property && property.get
   const setter = property && property.set
   if ((!getter || setter) && arguments.length === 2) {
