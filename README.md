@@ -6,7 +6,7 @@
 - src\platforms\web\runtime\index.js 实现\$mount
 - src\core\index.js initGlobalAPI 实现全局 api
 - src\core\instance\index.js Vue 构造函数
-- - initMixin(vue)
+  - initMixin(vue)
 > 实现_init
 
 ```js
