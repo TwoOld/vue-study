@@ -46,10 +46,10 @@ export class Observer {
     this.dep = new Dep()
     this.vmCount = 0
     def(value, '__ob__', this) // 在getter中可以通过__ob__获取ob实例
-    if (Array.isArray(value)) {
+    if (Array.isArray(value)) { // 覆盖数组原型
       // 数组响应化
       if (hasProto) {
-        protoAugment(value, arrayMethods)
+        protoAugment(value, arrayMethods) // value.__proto__ = arrayMethods
       } else {
         copyAugment(value, arrayMethods, arrayKeys)
       }
@@ -293,6 +293,8 @@ export function del(target: Array<any> | Object, key: any) {
 /**
  * Collect dependencies on array elements when the array is touched, since
  * we cannot intercept array element access like property getters.
+ * 
+ * 数组中所有项添加依赖，将来数组里面就可以通过__ob__.dep发送通知
  */
 function dependArray(value: Array<any>) {
   for (let e, i = 0, l = value.length; i < l; i++) {
