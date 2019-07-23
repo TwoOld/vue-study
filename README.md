@@ -235,8 +235,7 @@ renderMixin(Vue)
 
 // ---------------------- src\core\instance\render.js ----------------------
 
-Vue.prototype.$nextTick = function(fn: Function) {
-}
+Vue.prototype.$nextTick = function(fn: Function) {}
 
 Vue.prototype._render = function(): VNode {
   const vm: Component = this
@@ -291,6 +290,272 @@ Vue.prototype._render = function(): VNode {
 
 ## 数据响应式
 
+Vue 一大特点是数据响应式，数据的变化会作用于 UI 而不用进行 DOM 操作。原理上讲，是利用了 JS 语言特性`Object.defineProperty()`，通过定义对象属性 setter 方法拦截对象属性变更，从而将数值的变化转换为 UI 的变化。<br>
+
+具体实现是在 Vue 初始化时，会调用 initState，它会初始化 data，props 等，这里着重关注 data 初始化。
+
+```js
+// ---------------------- src\core\instance\state.js ----------------------
+export function initState(vm: Component) {
+  const opts = vm.$options
+
+  if (opts.data) {
+    initData(vm) // 初始化数据
+  } else {
+    observe((vm._data = {}), true /* asRootData */)
+  }
+}
+
+// 将data数据响应化
+function initData(vm: Component) {
+  // 获取数据
+  let data = vm.$options.data
+  data = vm._data = typeof data === 'function' ? getData(data, vm) : data || {}
+
+  if (!isPlainObject(data)) {
+    data = {}
+    process.env.NODE_ENV !== 'production' &&
+      warn(
+        'data functions should return an object:\n' +
+          'https://vuejs.org/v2/guide/components.html#data-Must-Be-a-Function',
+        vm
+      )
+  }
+  // proxy data on instance
+  // 代理数据
+  const keys = Object.keys(data)
+  const props = vm.$options.props
+  const methods = vm.$options.methods
+  let i = keys.length
+  while (i--) {
+    const key = keys[i]
+    if (process.env.NODE_ENV !== 'production') {
+    }
+    if (props && hasOwn(props, key)) {
+    } else if (!isReserved(key)) {
+      proxy(vm, `_data`, key)
+    }
+  }
+  // observe data
+  // 数据响应化
+  observe(data, true /* asRootData */)
+}
+
+// ---------------------- src\core\observer\index.js ----------------------
+// 返回一个Observer实例
+export function observe(value: any, asRootData: ?boolean): Observer | void {
+  // 只对Object进行处理
+  if (!isObject(value) || value instanceof VNode) {
+    return
+  }
+  // 有就返回，没有新建
+  let ob: Observer | void
+  if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
+    ob = value.__ob__
+  } else if (
+    shouldObserve &&
+    !isServerRendering() &&
+    (Array.isArray(value) || isPlainObject(value)) &&
+    Object.isExtensible(value) &&
+    !value._isVue
+  ) {
+    ob = new Observer(value)
+  }
+  if (asRootData && ob) {
+    ob.vmCount++
+  }
+  return ob
+}
+
+// 根据数据类型执行对应的响应化操作
+export class Observer {
+  value: any
+  dep: Dep // 保存数组类型数据的依赖
+  vmCount: number // number of vms that have this object as root $data
+
+  constructor(value: any) {
+    this.value = value
+    this.dep = new Dep()
+    this.vmCount = 0
+    def(value, '__ob__', this) // 在getter中可以通过__ob__获取ob实例
+    if (Array.isArray(value)) {
+      // 数组响应化
+      if (hasProto) {
+        protoAugment(value, arrayMethods)
+      } else {
+        copyAugment(value, arrayMethods, arrayKeys)
+      }
+      this.observeArray(value)
+    } else {
+      // 对象响应化
+      this.walk(value)
+    }
+  }
+
+  /**
+   * 遍历对象所有属性并转换为getter/setter
+   */
+  walk(obj: Object) {
+    const keys = Object.keys(obj)
+    for (let i = 0; i < keys.length; i++) {
+      defineReactive(obj, keys[i])
+    }
+  }
+
+  /**
+   * 对数组每一项执行响应化
+   */
+  observeArray(items: Array<any>) {
+    for (let i = 0, l = items.length; i < l; i++) {
+      observe(items[i])
+    }
+  }
+}
+
+// 定义对象属性的getter/setter，getter负责收集添加依赖，setter负责通知更新
+export function defineReactive(
+  obj: Object,
+  key: string,
+  val: any,
+  customSetter?: ?Function,
+  shallow?: boolean
+) {
+  const dep = new Dep() // 一个key对应一个Dep实例
+
+  const property = Object.getOwnPropertyDescriptor(obj, key)
+  if (property && property.configurable === false) {
+    return
+  }
+
+  // cater for pre-defined getter/setters
+  const getter = property && property.get
+  const setter = property && property.set
+  if ((!getter || setter) && arguments.length === 2) {
+    val = obj[key]
+  }
+
+  // 递归执行子对象响应化
+  let childOb = !shallow && observe(val)
+  // 定义当前对象getter/setter
+  Object.defineProperty(obj, key, {
+    enumerable: true,
+    configurable: true,
+    get: function reactiveGetter() {
+      const value = getter ? getter.call(obj) : val
+      // getter被调用时若存在依赖则追加
+      if (Dep.target) {
+        dep.depend()
+        // 若存在子observer，则依赖也追加到子ob
+        if (childOb) {
+          childOb.dep.depend()
+          if (Array.isArray(value)) {
+            dependArray(value) // 数组需要特殊处理
+          }
+        }
+      }
+      return value
+    },
+    set: function reactiveSetter(newVal) {
+      const value = getter ? getter.call(obj) : val
+      /* eslint-disable no-self-compare */
+      /* eslint-enable no-self-compare */
+      // #7981: for accessor properties without setter
+
+      // 更新值
+      if (setter) {
+        setter.call(obj, newVal)
+      } else {
+        val = newVal
+      }
+      // 递归更新子对象
+      childOb = !shallow && observe(newVal)
+      // 通知更新
+      dep.notify()
+    }
+  })
+}
+
+// ---------------------- src\core\observer\dep.js ----------------------
+// 负责管理一组Watcher，包括watcher实例的增删及通知更新
+export default class Dep {
+  static target: ?Watcher // 依赖收集时的watcher引用
+  id: number
+  subs: Array<Watcher> // watcher数组
+
+  constructor() {
+    this.id = uid++
+    this.subs = []
+  }
+
+  // 添加watcher实例
+  addSub(sub: Watcher) {
+    this.subs.push(sub)
+  }
+
+  // 删除watcher实例
+  removeSub(sub: Watcher) {
+    remove(this.subs, sub)
+  }
+
+  // watcher和dep相互保存引用
+  depend() {
+    if (Dep.target) {
+      Dep.target.addDep(this)
+    }
+  }
+
+  notify() {
+    // stabilize the subscriber list first
+    const subs = this.subs.slice()
+    if (process.env.NODE_ENV !== 'production' && !config.async) {
+      // subs aren't sorted in scheduler if not running async
+      // we need to sort them now to make sure they fire in correct
+      // order
+      subs.sort((a, b) => a.id - b.id)
+    }
+    for (let i = 0, l = subs.length; i < l; i++) {
+      subs[i].update()
+    }
+  }
+}
+
+// ---------------------- src\core\observer\watcher.js ----------------------
+// 负责管理一组Watcher，包括watcher实例的增删及通知更新
+export default class Watcher {
+
+  addDep(dep: Dep) {
+    const id = dep.id
+    if (!this.newDepIds.has(id)) {
+      // watcher保存dep引用
+      this.newDepIds.add(id)
+      this.newDeps.push(dep)
+      // dep添加watcher
+      if (!this.depIds.has(id)) {
+        dep.addSub(this)
+      }
+    }
+  }
+
+  update() {
+    // 更新逻辑
+    /* istanbul ignore else */
+    if (this.lazy) {
+      this.dirty = true
+    } else if (this.sync) {
+      this.run()
+    } else {
+      // 默认lazy和sync都是false，所以会走该逻辑
+      queueWatcher(this)
+    }
+  }
+
+}
+```
+> vue中的数据响应化使用了观察者模式：<br>
+> - defineReactive中的 getter 和 setter 对应着订阅和发布应为
+> - Dep的角色相当于主题Subject，维护订阅者、通知观察者更新
+> - Watcher的角色相当于观察者Observer，执行更新
+> - 但是vue里面的Observer不是上面说的观察者，它和data中对象一一对应，有内嵌的对象就会有child Observer与之对应
 
 ## 虚拟 DOM
 
