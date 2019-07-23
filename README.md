@@ -605,7 +605,6 @@ Vue.prototype.$watch = function(
 ```js
 // src\core\observer\watcher.js
 export default class Watcher {
-
   constructor(
     vm: Component,
     expOrFn: string | Function,
@@ -622,7 +621,7 @@ export default class Watcher {
     vm._watchers.push(this)
 
     // options
-    
+
     // parse expression for getter
     // 将表达式解析为getter函数
     // 如果是函数则直接指定为getter，那什么时候是函数？
@@ -681,25 +680,31 @@ export default class Watcher {
 }
 ```
 
-> 数据响应式处理中的各种角色可以通过动画再捋一下<br>
-> 理解响应式原理的实现，我们可以知道一下注意事项：<br>
-> - 对象各属性初始化时进行一次响应化处理，以后再动态设置是无效的<br>
-```js
+> 数据响应式处理中的各种角色可以通过动画再捋一下
+>
+> 理解响应式原理的实现，我们可以知道一下注意事项：
+>
+> - 对象各属性初始化时进行一次响应化处理，以后再动态设置是无效的
+
+``````js
 data: {
-    obj: {
-        foo: 'foo'
-    }
+  obj: {
+    foo: 'foo'
+  }
 }
 
 // 无效
 this.obj.bar = 'bar'
 // 有效
 this.$set(this.obj, 'bar', 'bar')
-```
-> 数组是通过方法拦截实现响应化处理，不通过方法操作数组也是无效的<br>
+``````
+
+> 数组是通过方法拦截实现响应化处理，不通过方法操作数组也是无效的
+>
+
 ```js
 data: {
-    items: ['foo','bar']
+  items: ['foo', 'bar']
 }
 // 无效
 this.items[0] = 'hello'
@@ -708,6 +713,7 @@ this.items.length = 0
 this.$set(this.items, 0, 'hello')
 this.items.splice(0, 2)
 ```
+
 ## 虚拟 DOM
 
 虚拟 DOM（Virtual DOM）是对 DOM 的 JS 抽象表示，它们是 JS 对象，能够描述 DOM 结构和关系。
