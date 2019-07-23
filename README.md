@@ -5,7 +5,8 @@
 - src\platforms\web\entry-runtime-with-compiler.js 扩展$mount
 - src\platforms\web\runtime\index.js 实现$mount
 - src\core\index.js initGlobalAPI 实现全局api
-- src\core\instance\index.js Vue构造函数；initMixin 实现_init
+- src\core\instance\index.js Vue构造函数
+initMixin 实现_init
 ```
 // 初始化
     vm._self = vm
@@ -107,6 +108,30 @@
 ```
 >initProvide src\core\instance\inject.js<br>
 >Provide 注入
+
+stateMixin
+```
+//   定义只读属性$data和$props
+  const dataDef = {}
+  dataDef.get = function () { return this._data }
+  const propsDef = {}
+  propsDef.get = function () { return this._props }
+  
+  Object.defineProperty(Vue.prototype, '$data', dataDef)
+  Object.defineProperty(Vue.prototype, '$props', propsDef)
+
+//   定义$set和$delete
+  Vue.prototype.$set = set
+  Vue.prototype.$delete = del
+
+//   定义$watch
+  Vue.prototype.$watch = function (
+    expOrFn: string | Function,
+    cb: any,
+    options?: Object
+  ): Function {
+  }
+```
 
 # 虚拟DOM
 
