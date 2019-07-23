@@ -1,4 +1,4 @@
-#Vue源码学习
+# Vue源码学习
 
 入口
 
@@ -108,21 +108,21 @@
 >initProvide src\core\instance\inject.js
 >Provide 注入
 
-#虚拟DOM
+# 虚拟DOM
 
 虚拟DOM（Virtual DOM）是对DOM的JS抽象表示，它们是JS对象，能够描述DOM结构和关系。
 
 ![](https://upload-images.jianshu.io/upload_images/16753277-758501473d389e72.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
-#优点
+# 优点
 
 虚拟DOM轻量、快速，当他们发生变化时通过新旧虚拟DOM比对可以得到最小DOM操作量，从而提升性能和用户体验。本质上时使用JavaScript运算成本替换DOM操作的执行成本，前者运算速度要比后者快得多，这样做很划算，因此才会有虚拟DOM。
 
 Vue 1.0中有细粒度的数据变化侦测，每一个属性对应一个Watcher实例，因此它是不需要虚拟DOM的，但是细粒度造成了大量开销，这对于大型项目来说是不可接受的。因此，Vue 2.0选择了中等粒度的解决方案，每一个组件对应一个Watcher实例，这样状态变化时只能通知到组件，再通过引入虚拟DOM去进行对比和渲染。
 
-#实现
+# 实现
 
-#虚拟DOM整体流程
+# 虚拟DOM整体流程
 
 - mountComponent
 >vdom树首页生成、渲染发生在mountComponent中，core/instance/lifecycle.js
@@ -165,7 +165,7 @@ export default class VNode {
   parent: VNode | void; // component placeholder node
 ```
 
-#patch
+# patch
 
 Vue使用的patching算法基于Snabbdom
 
@@ -233,7 +233,7 @@ return function patch (oldVnode, vnode, hydrating, removeOnly) {
     return vnode.elm
   }
 ```
-#patchVnode
+# patchVnode
 
 两个VNode类型相同，就执行更新操作，包括三种类型操作：属性更新PROPS、文本更新TEXT、子节点更新REORDER
 
@@ -334,7 +334,7 @@ function patchVnode(
     }
   }
 ```
-#updateChildren
+# updateChildren
 updateChildren主要作用是比对新旧两个VNode的children得出具体DOM操作。执行一个双循环是传统方式，vue 中针对web场景特点做了特别的算法优化：
 ![](https://upload-images.jianshu.io/upload_images/16753277-6c34183005864680.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 在新老两组VNode节点的左右头尾两侧都有一个变量标记，在遍历过程中这几个变量都会向中间靠拢。当
@@ -468,7 +468,7 @@ function updateChildren(parentElm, oldCh, newCh, insertedVnodeQueue, removeOnly)
     }
   }
 ```
-#属性相关dom操作
+# 属性相关dom操作
 原理是将属性相关dom操作按vdom hooks归类，在patchVnode时一起执行
 ```
 const hooks = ['create', 'activate', 'update', 'remove', 'destroy']
