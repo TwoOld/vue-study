@@ -8,7 +8,10 @@
 - src\core\instance\index.js Vue 构造函数
 
 ```js
-initMixin(vue) //实现_init
+// 实现_init
+initMixin(vue)
+```
+```js
 // 初始化
 vm._self = vm
 initLifecycle(vm)
@@ -21,9 +24,11 @@ initProvide(vm) // resolve provide after data/props
 callHook(vm, 'created')
 ```
 
-> initLifecycle(vm) src\core\instance\lifecycle.js<br>
-> 把组件实例里面用到的常用属性初始化，比如$parent/$root/\$children
-
+```js
+// src\core\instance\lifecycle.js
+// 把组件实例里面用到的常用属性初始化，比如$parent/$root/\$children
+initLifecycle(vm)
+```
 ```js
 vm.$parent = parent
 vm.$root = parent ? parent.$root : vm
@@ -39,9 +44,11 @@ vm._isDestroyed = false
 vm._isBeingDestroyed = false
 ```
 
-> initEvents src\core\instance\events.js<br>
-> 父组件传递的需要处理的事件 ps:事件的监听者实际是子组件
-
+```js
+// src\core\instance\events.js
+// 父组件传递的需要处理的事件 ps:事件的监听者实际是子组件
+initEvents(Vue)
+```
 ```js
 vm._events = Object.create(null)
 vm._hasHookEvent = false
@@ -52,8 +59,13 @@ if (listeners) {
 }
 ```
 
-> initRender src\core\instance\render.js<br>$slots $scopedSlots 初始化<br>$createElement函数声明<br>$attrs/\$listeners 响应化
-
+```js
+// src\core\instance\render.js
+// $slots $scopedSlots 初始化
+// $createElement函数声明
+// $attrs/$listeners 响应化
+initRender(Vue)
+```
 ```js
 vm._vnode = null // the root of the child tree
 vm._staticTrees = null // v-once cached trees
@@ -98,12 +110,17 @@ if (process.env.NODE_ENV !== 'production') {
 }
 ```
 
-> initInjections src\core\instance\inject.js<br>
-> Inject 响应化
+```js
+// src\core\instance\inject.js
+// Inject 响应化
+initInjections(Vue)
+```
 
-> initState src\core\instance\state.js<br>
-> 执行各种数据状态初始化，包括数据响应化等
-
+```js
+// src\core\instance\state.js
+// 执行各种数据状态初始化，包括数据响应化等
+initState(Vue)
+```
 ```js
 vm._watchers = []
 //   初始化所有属性
@@ -125,11 +142,15 @@ if (opts.watch && opts.watch !== nativeWatch) {
 }
 ```
 
-> initProvide src\core\instance\inject.js<br>
-> Provide 注入
+```js
+// src\core\instance\inject.js
+// Provide 注入
+initProvide(Vue)
+```
 
-stateMixin
-
+```js
+stateMixin(Vue)
+```
 ```js
 //   定义只读属性$data和$props
 const dataDef = {}
