@@ -816,6 +816,133 @@ this.$set(this.items, 0, 'hello')
 this.items.splice(0, 2)
 ```
 
+### Vue 异步更新队列
+
+Vue 在更新 DOM 时是异步执行的。只要侦听到数据变化，Vue 将开启一个队列，并缓冲在同一事件循环中发生的所有数据变更。如果同一个 watcher 被多次触发，指挥被推入到队列中一次。这种在缓冲时去除重复数据对于避免不必要的计算和 DOM 操作是非常重要的。  
+然后，在下一个的事件循环“tick”中，Vue 刷新队列并执行实际（已去重的）工作。Vue 在内部对异步队列尝试使用原生的`Promise.then()`、`MutationObserver`和`setImmediate`，如果执行环境不支持，则会采用`setTimeout(fn, 0)`代替。
+
+> 如果项获取更新后 DOM 状态，可以在数据变化之后使用`Vue.nextTick(cb)`，这样回调函数会在 DOM 更新完成后被调用。
+
+#### queueWatcher
+
+执行 watcher 入队操作，若存在重复 id 则跳过
+
+```js
+// src\core\observer\watcher.js
+// update()
+queueWatcher(this)
+
+// src\core\observer\scheduler.js
+// watcher入队
+export function queueWatcher(watcher: Watcher) {
+  const id = watcher.id
+  if (has[id] == null) {
+    // id不存在才会入队
+    has[id] = true
+    if (!flushing) {
+      // 没有在执行刷新则进入队尾
+      queue.push(watcher)
+    } else {
+      // if already flushing, splice the watcher based on its id
+      // if already past its id, it will be run next immediately.
+      // 若已刷新，按id顺序插入到队列
+      // 若已经过了，则下次刷新立即执行
+      let i = queue.length - 1
+      while (i > index && queue[i].id > watcher.id) {
+        i--
+      }
+      queue.splice(i + 1, 0, watcher)
+    }
+    // queue the flush
+    // 刷新队列
+    if (!waiting) {
+      waiting = true
+
+      if (process.env.NODE_ENV !== 'production' && !config.async) {
+        flushSchedulerQueue()
+        return
+      }
+      nextTick(flushSchedulerQueue)
+    }
+  }
+}
+
+// src\core\observer\scheduler.js
+// nextTick(flushSchedulerQueue)
+// 按照特定异步策略执行队列刷新操作
+export function nextTick(cb?: Function, ctx?: Object) {
+  let _resolve
+  // 注意cb不是立即执行，而是加入到回调数组，等待调用
+  callbacks.push(() => {
+    if (cb) {
+      try {
+        cb.call(ctx) // 真正执行cb
+      } catch (e) {
+        handleError(e, ctx, 'nextTick')
+      }
+    } else if (_resolve) {
+      _resolve(ctx)
+    }
+  })
+  // 没有出在挂起状态则开始异步执行过程
+  if (!pending) {
+    pending = true
+    timerFunc()
+  }
+  // $flow-disable-line
+  if (!cb && typeof Promise !== 'undefined') {
+    return new Promise(resolve => {
+      _resolve = resolve
+    })
+  }
+}
+
+let timerFunc
+
+// nextTick异步行为利用微任务队列，可通过Promise或MutationObserver交互
+// 首选Promise，次选MutationObserver
+if (typeof Promise !== 'undefined' && isNative(Promise)) {
+  const p = Promise.resolve()
+  timerFunc = () => {
+    p.then(flushCallbacks)
+    
+    if (isIOS) setTimeout(noop)
+  }
+  isUsingMicroTask = true
+} else if (
+  !isIE &&
+  typeof MutationObserver !== 'undefined' &&
+  (isNative(MutationObserver) ||
+    // PhantomJS and iOS 7.x
+    MutationObserver.toString() === '[object MutationObserverConstructor]')
+) {
+  // 不能用Promise时：PhantomJS，iOS7，Android 4.4
+  let counter = 1
+  const observer = new MutationObserver(flushCallbacks)
+  const textNode = document.createTextNode(String(counter))
+  observer.observe(textNode, {
+    characterData: true
+  })
+  timerFunc = () => {
+    counter = (counter + 1) % 2
+    textNode.data = String(counter)
+  }
+  isUsingMicroTask = true
+} else if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) {
+  // 回退到 setImmediate 它利用的是宏任务
+  timerFunc = () => {
+    setImmediate(flushCallbacks)
+  }
+} else {
+  // 最后选择 setTimeout
+  timerFunc = () => {
+    setTimeout(flushCallbacks, 0)
+  }
+}
+```
+
+> [宏任务和微任务](https://segmentfault.com/a/1190000014940904?utm_source=tag-newest)
+
 ## 虚拟 DOM
 
 虚拟 DOM（Virtual DOM）是对 DOM 的 JS 抽象表示，它们是 JS 对象，能够描述 DOM 结构和关系。

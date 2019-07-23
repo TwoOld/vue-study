@@ -10,7 +10,7 @@ export let isUsingMicroTask = false
 const callbacks = []
 let pending = false
 
-function flushCallbacks () {
+function flushCallbacks() {
   pending = false
   const copies = callbacks.slice(0)
   callbacks.length = 0
@@ -39,6 +39,8 @@ let timerFunc
 // completely stops working after triggering a few times... so, if native
 // Promise is available, we will use it:
 /* istanbul ignore next, $flow-disable-line */
+// nextTick异步行为利用微任务队列，可通过Promise或MutationObserver交互
+// 首选Promise，次选MutationObserver
 if (typeof Promise !== 'undefined' && isNative(Promise)) {
   const p = Promise.resolve()
   timerFunc = () => {
@@ -51,14 +53,17 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
     if (isIOS) setTimeout(noop)
   }
   isUsingMicroTask = true
-} else if (!isIE && typeof MutationObserver !== 'undefined' && (
-  isNative(MutationObserver) ||
-  // PhantomJS and iOS 7.x
-  MutationObserver.toString() === '[object MutationObserverConstructor]'
-)) {
+} else if (
+  !isIE &&
+  typeof MutationObserver !== 'undefined' &&
+  (isNative(MutationObserver) ||
+    // PhantomJS and iOS 7.x
+    MutationObserver.toString() === '[object MutationObserverConstructor]')
+) {
   // Use MutationObserver where native Promise is not available,
   // e.g. PhantomJS, iOS7, Android 4.4
   // (#6466 MutationObserver is unreliable in IE11)
+  // 不能用Promise时：PhantomJS，iOS7，Android 4.4
   let counter = 1
   const observer = new MutationObserver(flushCallbacks)
   const textNode = document.createTextNode(String(counter))
@@ -74,22 +79,28 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
   // Fallback to setImmediate.
   // Techinically it leverages the (macro) task queue,
   // but it is still a better choice than setTimeout.
+  // 回退到 setImmediate 它利用的时宏任务
   timerFunc = () => {
     setImmediate(flushCallbacks)
   }
 } else {
   // Fallback to setTimeout.
+  // 最后选择 setTimeout
   timerFunc = () => {
     setTimeout(flushCallbacks, 0)
   }
 }
-
-export function nextTick (cb?: Function, ctx?: Object) {
+/**
+ * nextTick(flushSchedulerQueue) src\core\observer\scheduler.js
+ * 按照特定异步策略执行队列刷新操作
+ */
+export function nextTick(cb?: Function, ctx?: Object) {
   let _resolve
+  // 注意cb不是立即执行，而是加入到回调数组，等待调用
   callbacks.push(() => {
     if (cb) {
       try {
-        cb.call(ctx)
+        cb.call(ctx) // 真正执行cb
       } catch (e) {
         handleError(e, ctx, 'nextTick')
       }
@@ -97,6 +108,7 @@ export function nextTick (cb?: Function, ctx?: Object) {
       _resolve(ctx)
     }
   })
+  // 没有出在挂起状态则开始异步执行过程
   if (!pending) {
     pending = true
     timerFunc()
