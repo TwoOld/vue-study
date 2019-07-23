@@ -9,8 +9,25 @@ src\platforms\web\runtime\index.js 实现\$mount
 src\core\index.js initGlobalAPI 实现全局 api
 
 src\core\instance\index.js Vue 构造函数
-- initMixin(vue)
-> 实现_init
+
+```js
+// Vue构造函数 new Vue()
+function Vue (options) {
+  this._init(options)
+}
+
+initMixin(Vue)
+stateMixin(Vue)
+eventsMixin(Vue)
+lifecycleMixin(Vue)
+renderMixin(Vue)
+
+export default Vue
+```
+
+### initMixin(vue)
+
+实现_init
 
 ```js
 
@@ -28,12 +45,12 @@ initProvide(vm) // resolve provide after data/props
 callHook(vm, 'created')
 ```
 
+#### initLifecycle(vm)
+
+把组件实例里面用到的常用属性初始化，比如$parent,$root,$children
+
 ```js
-// 把组件实例里面用到的常用属性初始化，比如$parent,$root,$children
-initLifecycle(vm)
-
 // ---------------------- src\core\instance\lifecycle.js ----------------------
-
 vm.$parent = parent
 vm.$root = parent ? parent.$root : vm
 
@@ -48,12 +65,12 @@ vm._isDestroyed = false
 vm._isBeingDestroyed = false
 ```
 
+#### initEvents(Vue)
+
+父组件传递的需要处理的事件 ps:事件的监听者实际是子组件
+
 ```js
-// 父组件传递的需要处理的事件 ps:事件的监听者实际是子组件
-initEvents(Vue)
-
 // ---------------------- src\core\instance\events.js ----------------------
-
 vm._events = Object.create(null)
 vm._hasHookEvent = false
 // init parent attached events
@@ -63,14 +80,16 @@ if (listeners) {
 }
 ```
 
+#### initRender(Vue)
+
+$slots $scopedSlots 初始化
+
+$createElement函数声明
+
+$attrs/$listeners 响应化
+
 ```js
-// $slots $scopedSlots 初始化
-// $createElement函数声明
-// $attrs/$listeners 响应化
-initRender(Vue)
-
 // ---------------------- src\core\instance\render.js ----------------------
-
 vm._vnode = null // the root of the child tree
 vm._staticTrees = null // v-once cached trees
 const options = vm.$options
@@ -114,18 +133,20 @@ if (process.env.NODE_ENV !== 'production') {
 }
 ```
 
+#### initInjections(Vue)
+
+Inject 响应化
+
 ```js
 // src\core\instance\inject.js
-// Inject 响应化
-initInjections(Vue)
 ```
 
+#### initState(Vue)
+
+执行各种数据状态初始化，包括数据响应化等
+
 ```js
-// 执行各种数据状态初始化，包括数据响应化等
-initState(Vue)
-
 // ---------------------- src\core\instance\state.js ----------------------
-
 vm._watchers = []
 // 初始化所有属性
 const opts = vm.$options
@@ -146,20 +167,24 @@ if (opts.watch && opts.watch !== nativeWatch) {
 }
 ```
 
+#### initProvide(Vue)
+
+Provide 注入
+
 ```js
 // src\core\instance\inject.js
-// Provide 注入
-initProvide(Vue)
 ```
 
+### stateMixin(Vue)
+
+定义只读属性$data和$props
+
+定义$set和$delete
+
+定义$watch
+
 ```js
-// 定义只读属性$data和$props
-// 定义$set和$delete
-// 定义$watch
-stateMixin(Vue)
-
 // ---------------------- src\core\instance\state.js ----------------------
-
 const dataDef = {}
 dataDef.get = function() {
   return this._data
@@ -182,12 +207,12 @@ Vue.prototype.$watch = function(
 ): Function {}
 ```
 
+### eventsMixin(Vue)
+
+实现事件相关实例api：$on,$emit,$off,$once
+
 ```js
-// 实现事件相关实例api：$on,$emit,$off,$once
-eventsMixin(Vue)
-
 // ---------------------- src\core\instance\events.js ----------------------
-
 const hookRE = /^hook:/
 Vue.prototype.$on = function(
   event: string | Array<string>,
@@ -204,12 +229,12 @@ Vue.prototype.$off = function(
 Vue.prototype.$emit = function(event: string): Component {}
 ```
 
+### lifecycleMixin(Vue)
+
+实现组件生命周期相关的三个核心实例api：_update,$forceUpdate,$destroy
+
 ```js
-// 实现组件生命周期相关的三个核心实例api：_update,$forceUpdate,$destroy
-lifecycleMixin(Vue)
-
 // ---------------------- src\core\instance\lifecycle.js ----------------------
-
 Vue.prototype._update = function(vnode: VNode, hydrating?: boolean) {
   const vm: Component = this
   const prevEl = vm.$el
@@ -232,12 +257,12 @@ Vue.prototype.$forceUpdate = function() {}
 Vue.prototype.$destroy = function() {}
 ```
 
+### renderMixin(Vue)
+
+实现$nextTick及_render函数
+
 ```js
-// 实现$nextTick及_render函数
-renderMixin(Vue)
-
 // ---------------------- src\core\instance\render.js ----------------------
-
 Vue.prototype.$nextTick = function(fn: Function) {}
 
 Vue.prototype._render = function(): VNode {
