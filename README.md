@@ -10,8 +10,9 @@
 ```js
 // 实现_init
 initMixin(vue)
-```
-```js
+
+// ---------------------- src\core\instance\init.js ----------------------
+
 // 初始化
 vm._self = vm
 initLifecycle(vm)
@@ -25,11 +26,11 @@ callHook(vm, 'created')
 ```
 
 ```js
-// src\core\instance\lifecycle.js
 // 把组件实例里面用到的常用属性初始化，比如$parent/$root/\$children
 initLifecycle(vm)
-```
-```js
+
+// ---------------------- src\core\instance\lifecycle.js ----------------------
+
 vm.$parent = parent
 vm.$root = parent ? parent.$root : vm
 
@@ -45,11 +46,11 @@ vm._isBeingDestroyed = false
 ```
 
 ```js
-// src\core\instance\events.js
 // 父组件传递的需要处理的事件 ps:事件的监听者实际是子组件
 initEvents(Vue)
-```
-```js
+
+// ---------------------- src\core\instance\events.js ----------------------
+
 vm._events = Object.create(null)
 vm._hasHookEvent = false
 // init parent attached events
@@ -60,30 +61,30 @@ if (listeners) {
 ```
 
 ```js
-// src\core\instance\render.js
 // $slots $scopedSlots 初始化
 // $createElement函数声明
 // $attrs/$listeners 响应化
 initRender(Vue)
-```
-```js
+
+// ---------------------- src\core\instance\render.js ----------------------
+
 vm._vnode = null // the root of the child tree
 vm._staticTrees = null // v-once cached trees
 const options = vm.$options
 const parentVnode = (vm.$vnode = options._parentVnode) // the placeholder node in parent tree
 const renderContext = parentVnode && parentVnode.context
-//   处理插槽
+// 处理插槽
 vm.$slots = resolveSlots(options._renderChildren, renderContext)
 vm.$scopedSlots = emptyObject
 // bind the createElement fn to this instance
 // so that we get proper render context inside it.
 // args order: tag, data, children, normalizationType, alwaysNormalize
 // internal version is used by render functions compiled from templates
-//   把createElement函数挂载到当前组件上，编译器使用
+// 把createElement函数挂载到当前组件上，编译器使用
 vm._c = (a, b, c, d) => createElement(vm, a, b, c, d, false)
 // normalization is always applied for the public version, used in
 // user-written render functions.
-//   用户编写的渲染函数使用这个
+// 用户编写的渲染函数使用这个
 vm.$createElement = (a, b, c, d) => createElement(vm, a, b, c, d, true)
 
 // $attrs & $listeners are exposed for easier HOC creation.
@@ -117,18 +118,18 @@ initInjections(Vue)
 ```
 
 ```js
-// src\core\instance\state.js
 // 执行各种数据状态初始化，包括数据响应化等
 initState(Vue)
-```
-```js
+
+// ---------------------- src\core\instance\state.js ----------------------
+
 vm._watchers = []
-//   初始化所有属性
+// 初始化所有属性
 const opts = vm.$options
 if (opts.props) initProps(vm, opts.props)
-//   初始化回调函数
+// 初始化回调函数
 if (opts.methods) initMethods(vm, opts.methods)
-//   data数据响应化
+// data数据响应化
 if (opts.data) {
   initData(vm)
 } else {
@@ -149,10 +150,13 @@ initProvide(Vue)
 ```
 
 ```js
+// 定义只读属性$data和$props
+// 定义$set和$delete
+// 定义$watch
 stateMixin(Vue)
-```
-```js
-//   定义只读属性$data和$props
+
+// ---------------------- src\core\instance\state.js ----------------------
+
 const dataDef = {}
 dataDef.get = function() {
   return this._data
@@ -165,16 +169,52 @@ propsDef.get = function() {
 Object.defineProperty(Vue.prototype, '$data', dataDef)
 Object.defineProperty(Vue.prototype, '$props', propsDef)
 
-//   定义$set和$delete
 Vue.prototype.$set = set
 Vue.prototype.$delete = del
 
-//   定义$watch
 Vue.prototype.$watch = function(
   expOrFn: string | Function,
   cb: any,
   options?: Object
 ): Function {}
+```
+
+```js
+// 实现事件相关实例api：$on,$emit,$off,$once
+eventsMixin(Vue)
+
+// ---------------------- src\core\instance\events.js ----------------------
+
+const hookRE = /^hook:/
+Vue.prototype.$on = function(
+  event: string | Array<string>,
+  fn: Function
+): Component {}
+
+Vue.prototype.$once = function(event: string, fn: Function): Component {}
+
+Vue.prototype.$off = function(
+  event?: string | Array<string>,
+  fn?: Function
+): Component {}
+
+Vue.prototype.$emit = function(event: string): Component {}
+```
+
+```js
+// 实现组件生命周期相关的三个核心实例api：_update,$forceUpdate,$destroy
+lifecycleMixin(Vue)
+
+// ---------------------- src\core\instance\lifecycle.js ----------------------
+
+Vue.prototype._update = function(vnode: VNode, hydrating?: boolean) {
+}
+
+Vue.prototype.$forceUpdate = function() {
+}
+
+Vue.prototype.$destroy = function() {
+}
 ```
 
 # 虚拟 DOM
