@@ -41,6 +41,7 @@ export function initLifecycle (vm: Component) {
     parent.$children.push(vm)
   }
 
+//   把组件实例里面用到的常用属性初始化
   vm.$parent = parent
   vm.$root = parent ? parent.$root : vm
 

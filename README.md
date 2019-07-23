@@ -1,3 +1,115 @@
+#Vue源码学习
+
+入口
+
+- src\platforms\web\entry-runtime-with-compiler.js 扩展$mount
+- src\platforms\web\runtime\index.js 实现$mount
+- src\core\index.js initGlobalAPI 实现全局api
+- src\core\instance\index.js Vue构造函数；initMixin 实现_init
+```
+// 初始化
+    vm._self = vm
+    initLifecycle(vm)
+    initEvents(vm)
+    initRender(vm)
+    callHook(vm, 'beforeCreate')
+    initInjections(vm) // resolve injections before data/props
+    initState(vm)
+    initProvide(vm) // resolve provide after data/props
+    callHook(vm, 'created')
+```
+>initLifecycle(vm) src\core\instance\lifecycle.js
+>把组件实例里面用到的常用属性初始化，比如$parent/$root/$children
+```
+  vm.$parent = parent
+  vm.$root = parent ? parent.$root : vm
+
+  vm.$children = []
+  vm.$refs = {}
+
+  vm._watcher = null
+  vm._inactive = null
+  vm._directInactive = false
+  vm._isMounted = false
+  vm._isDestroyed = false
+  vm._isBeingDestroyed = false
+```
+>initEvents src\core\instance\events.js
+>父组件传递的需要处理的事件 ps:事件的监听者实际是子组件
+```
+  vm._events = Object.create(null)
+  vm._hasHookEvent = false
+  // init parent attached events
+  const listeners = vm.$options._parentListeners
+  if (listeners) {
+    updateComponentListeners(vm, listeners)
+  }
+```
+>initRender src\core\instance\render.js
+>$slots $scopedSlots初始化
+>$createElement函数声明
+>$attrs $listeners响应化
+```
+  vm._vnode = null // the root of the child tree
+  vm._staticTrees = null // v-once cached trees
+  const options = vm.$options
+  const parentVnode = vm.$vnode = options._parentVnode // the placeholder node in parent tree
+  const renderContext = parentVnode && parentVnode.context
+//   处理插槽
+  vm.$slots = resolveSlots(options._renderChildren, renderContext)
+  vm.$scopedSlots = emptyObject
+  // bind the createElement fn to this instance
+  // so that we get proper render context inside it.
+  // args order: tag, data, children, normalizationType, alwaysNormalize
+  // internal version is used by render functions compiled from templates
+//   把createElement函数挂载到当前组件上，编译器使用
+  vm._c = (a, b, c, d) => createElement(vm, a, b, c, d, false)
+  // normalization is always applied for the public version, used in
+  // user-written render functions.
+//   用户编写的渲染函数使用这个
+  vm.$createElement = (a, b, c, d) => createElement(vm, a, b, c, d, true)
+
+  // $attrs & $listeners are exposed for easier HOC creation.
+  // they need to be reactive so that HOCs using them are always updated
+  const parentData = parentVnode && parentVnode.data
+
+  /* istanbul ignore else */
+  if (process.env.NODE_ENV !== 'production') {
+  } else {
+    defineReactive(vm, '$attrs', parentData && parentData.attrs || emptyObject, null, true)
+    defineReactive(vm, '$listeners', options._parentListeners || emptyObject, null, true)
+  }
+```
+>initInjections src\core\instance\inject.js
+>Inject 响应化
+
+>initState src\core\instance\state.js
+>执行各种数据状态初始化，包括数据响应化等
+```
+  vm._watchers = []
+//   初始化所有属性
+  const opts = vm.$options
+  if (opts.props) initProps(vm, opts.props)
+//   初始化回调函数
+  if (opts.methods) initMethods(vm, opts.methods)
+//   data数据响应化
+  if (opts.data) {
+    initData(vm)
+  } else {
+    observe(vm._data = {}, true /* asRootData */)
+  }
+//   computed初始化
+  if (opts.computed) initComputed(vm, opts.computed)
+//   watch初始化
+  if (opts.watch && opts.watch !== nativeWatch) {
+    initWatch(vm, opts.watch)
+  }
+```
+>initProvide src\core\instance\inject.js
+>Provide 注入
+
+#虚拟DOM
+
 虚拟DOM（Virtual DOM）是对DOM的JS抽象表示，它们是JS对象，能够描述DOM结构和关系。
 
 ![](https://upload-images.jianshu.io/upload_images/16753277-758501473d389e72.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)

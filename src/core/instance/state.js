@@ -47,15 +47,20 @@ export function proxy (target: Object, sourceKey: string, key: string) {
 
 export function initState (vm: Component) {
   vm._watchers = []
+//   初始化所有属性
   const opts = vm.$options
   if (opts.props) initProps(vm, opts.props)
+//   初始化回调函数
   if (opts.methods) initMethods(vm, opts.methods)
+//   data数据响应化
   if (opts.data) {
     initData(vm)
   } else {
     observe(vm._data = {}, true /* asRootData */)
   }
+//   computed初始化
   if (opts.computed) initComputed(vm, opts.computed)
+//   watch初始化
   if (opts.watch && opts.watch !== nativeWatch) {
     initWatch(vm, opts.watch)
   }
