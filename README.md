@@ -1,6 +1,6 @@
 # Vue 源码学习
 
-## 入口
+## new Vue() 入口
 
 src\platforms\web\entry-runtime-with-compiler.js 扩展\$mount
 

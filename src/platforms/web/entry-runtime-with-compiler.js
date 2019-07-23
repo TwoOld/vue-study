@@ -17,7 +17,9 @@ const idToTemplate = cached(id => {
   return el && el.innerHTML
 })
 
+// 获取$mount函数
 const mount = Vue.prototype.$mount
+// 扩展$mount函数
 Vue.prototype.$mount = function(
   el?: string | Element,
   hydrating?: boolean
