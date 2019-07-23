@@ -2,11 +2,14 @@
 
 ## 入口
 
-- src\platforms\web\entry-runtime-with-compiler.js 扩展\$mount
-- src\platforms\web\runtime\index.js 实现\$mount
-- src\core\index.js initGlobalAPI 实现全局 api
-- src\core\instance\index.js Vue 构造函数
-  - initMixin(vue)
+src\platforms\web\entry-runtime-with-compiler.js 扩展\$mount
+
+src\platforms\web\runtime\index.js 实现\$mount
+
+src\core\index.js initGlobalAPI 实现全局 api
+
+src\core\instance\index.js Vue 构造函数
+- initMixin(vue)
 > 实现_init
 
 ```js
