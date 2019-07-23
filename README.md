@@ -47,7 +47,7 @@ callHook(vm, 'created')
 
 #### initLifecycle(vm)
 
-把组件实例里面用到的常用属性初始化，比如$parent,$root,$children
+把组件实例里面用到的常用属性初始化，比如\$parent,\$root,\$children
 
 ```js
 // ---------------------- src\core\instance\lifecycle.js ----------------------
@@ -82,11 +82,11 @@ if (listeners) {
 
 #### initRender(Vue)
 
-$slots $scopedSlots 初始化
+\$slots \$scopedSlots 初始化
 
-$createElement函数声明
+\$createElement函数声明
 
-$attrs/$listeners 响应化
+\$attrs/\$listeners 响应化
 
 ```js
 // ---------------------- src\core\instance\render.js ----------------------
