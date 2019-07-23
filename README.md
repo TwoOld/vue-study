@@ -18,7 +18,7 @@
     initProvide(vm) // resolve provide after data/props
     callHook(vm, 'created')
 ```
->initLifecycle(vm) src\core\instance\lifecycle.js
+>initLifecycle(vm) src\core\instance\lifecycle.js<br>
 >把组件实例里面用到的常用属性初始化，比如$parent/$root/$children
 ```
   vm.$parent = parent
