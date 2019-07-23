@@ -6,10 +6,10 @@
 - src\platforms\web\runtime\index.js 实现\$mount
 - src\core\index.js initGlobalAPI 实现全局 api
 - src\core\instance\index.js Vue 构造函数
+- - initMixin(vue)
+> 实现_init
 
 ```js
-// 实现_init
-initMixin(vue)
 
 // ---------------------- src\core\instance\init.js ----------------------
 
@@ -26,7 +26,7 @@ callHook(vm, 'created')
 ```
 
 ```js
-// 把组件实例里面用到的常用属性初始化，比如$parent/$root/\$children
+// 把组件实例里面用到的常用属性初始化，比如$parent,$root,$children
 initLifecycle(vm)
 
 // ---------------------- src\core\instance\lifecycle.js ----------------------
@@ -290,7 +290,7 @@ Vue.prototype._render = function(): VNode {
 
 ## 数据响应式
 
-Vue 一大特点是数据响应式，数据的变化会作用于 UI 而不用进行 DOM 操作。原理上讲，是利用了 JS 语言特性`Object.defineProperty()`，通过定义对象属性 setter 方法拦截对象属性变更，从而将数值的变化转换为 UI 的变化。<br>
+Vue 一大特点是数据响应式，数据的变化会作用于 UI 而不用进行 DOM 操作。原理上讲，是利用了 JS 语言特性`Object.defineProperty()`，通过定义对象属性 setter 方法拦截对象属性变更，从而将数值的变化转换为 UI 的变化。
 
 具体实现是在 Vue 初始化时，会调用 initState，它会初始化 data，props 等，这里着重关注 data 初始化。
 
