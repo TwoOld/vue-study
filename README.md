@@ -333,8 +333,13 @@ export function initState(vm: Component) {
     observe((vm._data = {}), true /* asRootData */)
   }
 }
+```
 
-// 将data数据响应化
+### initData()
+
+将data数据响应化
+
+```js
 function initData(vm: Component) {
   // 获取数据
   let data = vm.$options.data
@@ -368,9 +373,14 @@ function initData(vm: Component) {
   // 数据响应化
   observe(data, true /* asRootData */)
 }
+```
 
+#### observe()
+
+返回一个Observer实例
+
+```js
 // ---------------------- src\core\observer\index.js ----------------------
-// 返回一个Observer实例
 export function observe(value: any, asRootData: ?boolean): Observer | void {
   // 只对Object进行处理
   if (!isObject(value) || value instanceof VNode) {
@@ -394,8 +404,13 @@ export function observe(value: any, asRootData: ?boolean): Observer | void {
   }
   return ob
 }
+```
 
-// 根据数据类型执行对应的响应化操作
+#### class Observer
+
+根据数据类型执行对应的响应化操作
+
+```js
 export class Observer {
   value: any
   dep: Dep // 保存数组类型数据的依赖
@@ -439,8 +454,13 @@ export class Observer {
     }
   }
 }
+```
 
-// 定义对象属性的getter/setter，getter负责收集添加依赖，setter负责通知更新
+#### defineReactive()
+
+定义对象属性的getter/setter，getter负责收集添加依赖，setter负责通知更新
+
+```js
 export function defineReactive(
   obj: Object,
   key: string,
@@ -502,9 +522,14 @@ export function defineReactive(
     }
   })
 }
+```
 
+#### class Dep
+
+负责管理一组Watcher，包括watcher实例的增删及通知更新
+
+```js
 // ---------------------- src\core\observer\dep.js ----------------------
-// 负责管理一组Watcher，包括watcher实例的增删及通知更新
 export default class Dep {
   static target: ?Watcher // 依赖收集时的watcher引用
   id: number
@@ -546,9 +571,14 @@ export default class Dep {
     }
   }
 }
+```
 
+#### class Watcher
+
+负责管理一组Watcher，包括watcher实例的增删及通知更新
+
+```js
 // ---------------------- src\core\observer\watcher.js ----------------------
-// 负责管理一组Watcher，包括watcher实例的增删及通知更新
 export default class Watcher {
 
   addDep(dep: Dep) {
