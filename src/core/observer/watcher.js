@@ -53,10 +53,13 @@ export default class Watcher {
     isRenderWatcher?: boolean
   ) {
     this.vm = vm
+    // 组件保存render watcher
     if (isRenderWatcher) {
       vm._watcher = this
     }
+    // 组件保存非render watcher
     vm._watchers.push(this)
+
     // options
     if (options) {
       this.deep = !!options.deep
@@ -78,9 +81,13 @@ export default class Watcher {
     this.expression =
       process.env.NODE_ENV !== 'production' ? expOrFn.toString() : ''
     // parse expression for getter
+    // 将表达式解析为getter函数
+    // 如果是函数则直接指定为getter，那什么时候是函数？
+    // 答案是那些和组件实例对应的Watcher创建时会传递组件更新函数updateComponent
     if (typeof expOrFn === 'function') {
       this.getter = expOrFn
     } else {
+      // 这种是$watch传递进来的表达式，它们需要解析为函数
       this.getter = parsePath(expOrFn)
       if (!this.getter) {
         this.getter = noop
@@ -93,17 +100,22 @@ export default class Watcher {
           )
       }
     }
+    // 若非延迟watcher，立即调用getter
     this.value = this.lazy ? undefined : this.get()
   }
 
   /**
    * Evaluate the getter, and re-collect dependencies.
+   *
+   * 模拟getter，重新收集依赖
    */
   get() {
+    // Dep.target = this
     pushTarget(this)
     let value
     const vm = this.vm
     try {
+      // 从组件中获取到value同时触发依赖收集
       value = this.getter.call(vm, vm)
     } catch (e) {
       if (this.user) {
@@ -114,6 +126,7 @@ export default class Watcher {
     } finally {
       // "touch" every property so they are all tracked as
       // dependencies for deep watching
+      // deep watching，递归触发深层属性
       if (this.deep) {
         traverse(value)
       }

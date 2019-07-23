@@ -551,11 +551,134 @@ export default class Watcher {
 
 }
 ```
-> vue中的数据响应化使用了观察者模式：<br>
-> - defineReactive中的 getter 和 setter 对应着订阅和发布应为
-> - Dep的角色相当于主题Subject，维护订阅者、通知观察者更新
-> - Watcher的角色相当于观察者Observer，执行更新
-> - 但是vue里面的Observer不是上面说的观察者，它和data中对象一一对应，有内嵌的对象就会有child Observer与之对应
+
+> vue 中的数据响应化使用了观察者模式：<br>
+>
+> - defineReactive 中的 getter 和 setter 对应着订阅和发布应为
+> - Dep 的角色相当于主题 Subject，维护订阅者、通知观察者更新
+> - Watcher 的角色相当于观察者 Observer，执行更新
+> - 但是 vue 里面的 Observer 不是上面说的观察者，它和 data 中对象一一对应，有内嵌的对象就会有 child Observer 与之对应
+
+### \$watch
+
+\$watch 是和数据响应机制息息相关的一个 API，它指定一个监控表达式，当数值发生变化的时候执行回调函数，我们来看一下它的实现
+
+```js
+// src\core\instance\state.js
+// stateMixin()
+Vue.prototype.$watch = function(
+  expOrFn: string | Function,
+  cb: any,
+  options?: Object
+): Function {
+  const vm: Component = this
+  // 对象形式回调的解析
+  if (isPlainObject(cb)) {
+    return createWatcher(vm, expOrFn, cb, options)
+  }
+  options = options || {}
+  options.user = true
+  // 创建Watcher监视数值变化
+  const watcher = new Watcher(vm, expOrFn, cb, options)
+  // 若有immediate选项立即执行一次cb
+  if (options.immediate) {
+    try {
+      cb.call(vm, watcher.value)
+    } catch (error) {
+      handleError(
+        error,
+        vm,
+        `callback for immediate watcher "${watcher.expression}"`
+      )
+    }
+  }
+  return function unwatchFn() {
+    watcher.teardown()
+  }
+}
+```
+
+### Watcher 构造函数
+
+主要解析监听的表达式，并触发依赖收集
+
+```js
+export default class Watcher {
+
+  constructor(
+    vm: Component,
+    expOrFn: string | Function,
+    cb: Function,
+    options?: ?Object,
+    isRenderWatcher?: boolean
+  ) {
+    this.vm = vm
+    // 组件保存render watcher
+    if (isRenderWatcher) {
+      vm._watcher = this
+    }
+    // 组件保存非render watcher
+    vm._watchers.push(this)
+
+    // options
+    
+    // parse expression for getter
+    // 将表达式解析为getter函数
+    // 如果是函数则直接指定为getter，那什么时候是函数？
+    // 答案是那些和组件实例对应的Watcher创建时会传递组件更新函数updateComponent
+    if (typeof expOrFn === 'function') {
+      this.getter = expOrFn
+    } else {
+      // 这种是$watch传递进来的表达式，它们需要解析为函数
+      this.getter = parsePath(expOrFn)
+      if (!this.getter) {
+        this.getter = noop
+        process.env.NODE_ENV !== 'production' &&
+          warn(
+            `Failed watching path: "${expOrFn}" ` +
+              'Watcher only accepts simple dot-delimited paths. ' +
+              'For full control, use a function instead.',
+            vm
+          )
+      }
+    }
+    // 若非延迟watcher，立即调用getter
+    this.value = this.lazy ? undefined : this.get()
+  }
+
+  /**
+   * Evaluate the getter, and re-collect dependencies.
+   *
+   * 模拟getter，重新收集依赖
+   */
+  get() {
+    // Dep.target = this
+    pushTarget(this)
+    let value
+    const vm = this.vm
+    try {
+      // 从组件中获取到value同时触发依赖收集
+      value = this.getter.call(vm, vm)
+    } catch (e) {
+      if (this.user) {
+        handleError(e, vm, `getter for watcher "${this.expression}"`)
+      } else {
+        throw e
+      }
+    } finally {
+      // "touch" every property so they are all tracked as
+      // dependencies for deep watching
+      // deep watching，递归触发深层属性
+      if (this.deep) {
+        traverse(value)
+      }
+      popTarget()
+      this.cleanupDeps()
+    }
+    return value
+  }
+}
+```
 
 ## 虚拟 DOM
 

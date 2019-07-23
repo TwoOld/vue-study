@@ -360,12 +360,15 @@ export function stateMixin(Vue: Class<Component>) {
     options?: Object
   ): Function {
     const vm: Component = this
+    // 对象形式回调的解析
     if (isPlainObject(cb)) {
       return createWatcher(vm, expOrFn, cb, options)
     }
     options = options || {}
     options.user = true
+    // 创建Watcher监视数值变化
     const watcher = new Watcher(vm, expOrFn, cb, options)
+    // 若有immediate选项立即执行一次cb
     if (options.immediate) {
       try {
         cb.call(vm, watcher.value)
