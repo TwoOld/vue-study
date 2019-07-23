@@ -680,13 +680,116 @@ export default class Watcher {
 }
 ```
 
+### 数组响应化
+
+数组数据变化的侦测跟对象不同，我们操作数组通常使用 push、pop、splice 等方法，此时没有办法得知数组变化。所以 vue 中采取的策略是拦截这些方法并通知 dep。
+
+#### 拦截器
+
+为数组原型中的 7 个可以改变内容的方法定义拦截器
+
+```js
+// src\core\observer\array.js
+import { def } from '../util/index'
+
+// 数组原型
+const arrayProto = Array.prototype
+// 修改后的数组
+export const arrayMethods = Object.create(arrayProto)
+
+// 7个待修改方法
+const methodsToPatch = [
+  'push',
+  'pop',
+  'shift',
+  'unshift',
+  'splice',
+  'sort',
+  'reverse'
+]
+
+/**
+ * Intercept mutating methods and emit events
+ *
+ * 拦截这些方法，额外发送变更通知
+ */
+methodsToPatch.forEach(function(method) {
+  // cache original method
+  // 原始数组方法
+  const original = arrayProto[method]
+  // 修改这些方法的descriptor
+  def(arrayMethods, method, function mutator(...args) {
+    // 原始操作
+    const result = original.apply(this, args)
+    // 获取ob实例用于发送通知
+    const ob = this.__ob__
+    // 三个能新增元素的方法特殊处理
+    let inserted
+    switch (method) {
+      case 'push':
+      case 'unshift':
+        inserted = args
+        break
+      case 'splice':
+        inserted = args.slice(2)
+        break
+    }
+    // 若有新增则做响应处理
+    if (inserted) ob.observeArray(inserted)
+    // notify change
+    // 通知更新
+    ob.dep.notify()
+    return result
+  })
+})
+```
+
+#### 覆盖数组原型
+
+Observer 中覆盖数组原型
+
+```js
+// src\core\observer\index.js
+// class Observer constructor()
+if (Array.isArray(value)) {
+  // 覆盖数组原型
+  protoAugment(value, arrayMethods) // value.__proto__ = arrayMethods
+
+  this.observeArray(value)
+}
+```
+
+#### 依赖收集
+
+defineReactive 中数组的特殊处理
+
+```js
+// src\core\observer\index.js
+// defineReactive()
+// getter中处理
+if (Array.isArray(value)) {
+  dependArray(value)
+}
+
+// 数组中所有项添加依赖，将来数组里面就可以通过__ob__.dep发送通知
+function dependArray(value: Array<any>) {
+  for (let e, i = 0, l = value.length; i < l; i++) {
+    e = value[i]
+    e && e.__ob__ && e.__ob__.dep.depend()
+    if (Array.isArray(e)) {
+      dependArray(e)
+    }
+  }
+}
+```
+
 > 数据响应式处理中的各种角色可以通过动画再捋一下
 >
 > 理解响应式原理的实现，我们可以知道一下注意事项：
 >
 > - 对象各属性初始化时进行一次响应化处理，以后再动态设置是无效的
 
-``````js
+```js
 data: {
   obj: {
     foo: 'foo'
@@ -697,10 +800,9 @@ data: {
 this.obj.bar = 'bar'
 // 有效
 this.$set(this.obj, 'bar', 'bar')
-``````
+```
 
 > - 数组是通过方法拦截实现响应化处理，不通过方法操作数组也是无效的
->
 
 ```js
 data: {
