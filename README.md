@@ -1,6 +1,6 @@
 # Vue 源码学习
 
-入口
+## 入口
 
 - src\platforms\web\entry-runtime-with-compiler.js 扩展\$mount
 - src\platforms\web\runtime\index.js 实现\$mount
@@ -208,30 +208,105 @@ lifecycleMixin(Vue)
 // ---------------------- src\core\instance\lifecycle.js ----------------------
 
 Vue.prototype._update = function(vnode: VNode, hydrating?: boolean) {
+  const vm: Component = this
+  const prevEl = vm.$el
+  const prevVnode = vm._vnode
+  const restoreActiveInstance = setActiveInstance(vm)
+  vm._vnode = vnode
+  // Vue.prototype.__patch__ is injected in entry points
+  // based on the rendering backend used.
+  if (!prevVnode) {
+    // initial render
+    vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
+  } else {
+    // updates
+    vm.$el = vm.__patch__(prevVnode, vnode)
+  }
 }
 
-Vue.prototype.$forceUpdate = function() {
+Vue.prototype.$forceUpdate = function() {}
+
+Vue.prototype.$destroy = function() {}
+```
+
+```js
+// 实现$nextTick及_render函数
+renderMixin(Vue)
+
+// ---------------------- src\core\instance\render.js ----------------------
+
+Vue.prototype.$nextTick = function(fn: Function) {
 }
 
-Vue.prototype.$destroy = function() {
+Vue.prototype._render = function(): VNode {
+  const vm: Component = this
+  const { render, _parentVnode } = vm.$options
+
+  if (_parentVnode) {
+    vm.$scopedSlots = normalizeScopedSlots(
+      _parentVnode.data.scopedSlots,
+      vm.$slots,
+      vm.$scopedSlots
+    )
+  }
+
+  // set parent vnode. this allows render functions to have access
+  // to the data on the placeholder node.
+  vm.$vnode = _parentVnode
+  // render self
+  let vnode
+  try {
+    // There's no need to maintain a stack because all render fns are called
+    // separately from one another. Nested component's render fns are called
+    // when parent component is patched.
+    currentRenderingInstance = vm
+    vnode = render.call(vm._renderProxy, vm.$createElement)
+  } catch (e) {
+    handleError(e, vm, `render`)
+    // return error render result,
+    // or previous vnode to prevent render error causing blank component
+    /* istanbul ignore else */
+    if (process.env.NODE_ENV !== 'production' && vm.$options.renderError) {
+    } else {
+      vnode = vm._vnode
+    }
+  } finally {
+    currentRenderingInstance = null
+  }
+  // if the returned array contains only a single node, allow it
+  if (Array.isArray(vnode) && vnode.length === 1) {
+    vnode = vnode[0]
+  }
+  // return empty vnode in case the render function errored out
+  if (!(vnode instanceof VNode)) {
+    if (process.env.NODE_ENV !== 'production' && Array.isArray(vnode)) {
+    }
+    vnode = createEmptyVNode()
+  }
+  // set parent
+  vnode.parent = _parentVnode
+  return vnode
 }
 ```
 
-# 虚拟 DOM
+## 数据响应式
+
+
+## 虚拟 DOM
 
 虚拟 DOM（Virtual DOM）是对 DOM 的 JS 抽象表示，它们是 JS 对象，能够描述 DOM 结构和关系。
 
 ![](https://upload-images.jianshu.io/upload_images/16753277-758501473d389e72.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
-# 优点
+### 优点
 
 虚拟 DOM 轻量、快速，当他们发生变化时通过新旧虚拟 DOM 比对可以得到最小 DOM 操作量，从而提升性能和用户体验。本质上时使用 JavaScript 运算成本替换 DOM 操作的执行成本，前者运算速度要比后者快得多，这样做很划算，因此才会有虚拟 DOM。
 
 Vue 1.0 中有细粒度的数据变化侦测，每一个属性对应一个 Watcher 实例，因此它是不需要虚拟 DOM 的，但是细粒度造成了大量开销，这对于大型项目来说是不可接受的。因此，Vue 2.0 选择了中等粒度的解决方案，每一个组件对应一个 Watcher 实例，这样状态变化时只能通知到组件，再通过引入虚拟 DOM 去进行对比和渲染。
 
-# 实现
+### 实现
 
-# 虚拟 DOM 整体流程
+### 虚拟 DOM 整体流程
 
 - mountComponent
   > vdom 树首页生成、渲染发生在 mountComponent 中，core/instance/lifecycle.js
@@ -274,7 +349,7 @@ export default class VNode {
   parent: VNode | void; // component placeholder node
 ```
 
-# patch
+### patch
 
 Vue 使用的 patching 算法基于 Snabbdom
 
@@ -344,7 +419,7 @@ return function patch(oldVnode, vnode, hydrating, removeOnly) {
 }
 ```
 
-# patchVnode
+### patchVnode
 
 两个 VNode 类型相同，就执行更新操作，包括三种类型操作：属性更新 PROPS、文本更新 TEXT、子节点更新 REORDER
 
@@ -450,7 +525,7 @@ function patchVnode(
 }
 ```
 
-# updateChildren
+### updateChildren
 
 updateChildren 主要作用是比对新旧两个 VNode 的 children 得出具体 DOM 操作。执行一个双循环是传统方式，vue 中针对 web 场景特点做了特别的算法优化：
 ![](https://upload-images.jianshu.io/upload_images/16753277-6c34183005864680.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
@@ -650,7 +725,7 @@ function updateChildren(
 }
 ```
 
-# 属性相关 dom 操作
+### 属性相关 dom 操作
 
 原理是将属性相关 dom 操作按 vdom hooks 归类，在 patchVnode 时一起执行
 
