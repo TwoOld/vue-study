@@ -34,7 +34,7 @@
   vm._isDestroyed = false
   vm._isBeingDestroyed = false
 ```
->initEvents src\core\instance\events.js
+>initEvents src\core\instance\events.js<br>
 >父组件传递的需要处理的事件 ps:事件的监听者实际是子组件
 ```
   vm._events = Object.create(null)
@@ -45,10 +45,10 @@
     updateComponentListeners(vm, listeners)
   }
 ```
->initRender src\core\instance\render.js
->$slots $scopedSlots初始化
->$createElement函数声明
->$attrs $listeners响应化
+>initRender src\core\instance\render.js<br>
+>$slots $scopedSlots初始化<br>
+>$createElement函数声明<br>
+>$attrs $listeners响应化<br>
 ```
   vm._vnode = null // the root of the child tree
   vm._staticTrees = null // v-once cached trees
@@ -80,10 +80,10 @@
     defineReactive(vm, '$listeners', options._parentListeners || emptyObject, null, true)
   }
 ```
->initInjections src\core\instance\inject.js
+>initInjections src\core\instance\inject.js<br>
 >Inject 响应化
 
->initState src\core\instance\state.js
+>initState src\core\instance\state.js<br>
 >执行各种数据状态初始化，包括数据响应化等
 ```
   vm._watchers = []
@@ -105,7 +105,7 @@
     initWatch(vm, opts.watch)
   }
 ```
->initProvide src\core\instance\inject.js
+>initProvide src\core\instance\inject.js<br>
 >Provide 注入
 
 # 虚拟DOM
