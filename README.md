@@ -335,6 +335,8 @@ export function initState(vm: Component) {
 }
 ```
 
+![](https://upload-images.jianshu.io/upload_images/16753277-d87383e36299c6fd.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
 ### initData()
 
 将data数据响应化
@@ -616,9 +618,6 @@ export default class Watcher {
 > - Dep 的角色相当于主题 Subject，维护订阅者、通知观察者更新
 > - Watcher 的角色相当于观察者 Observer，执行更新
 > - 但是 vue 里面的 Observer 不是上面说的观察者，它和 data 中对象一一对应，有内嵌的对象就会有 child Observer 与之对应
-
-![](https://upload-images.jianshu.io/upload_images/16753277-d87383e36299c6fd.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-
 
 ### \$watch
 
