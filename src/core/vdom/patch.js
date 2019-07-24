@@ -448,7 +448,7 @@ export function createPatchFunction(backend) {
         oldEndVnode = oldCh[--oldEndIdx]
         newStartVnode = newCh[++newStartIdx]
       } else {
-        /*          生成一个哈希表，key是旧VNode的key，值是该VNode在旧VNode中索引        */
+        /* 生成一个哈希表，key是旧VNode的key，值是该VNode在旧VNode中索引 */
         if (isUndef(oldKeyToIdx)) oldKeyToIdx = createKeyToOldIdx(oldCh, oldStartIdx, oldEndIdx)
         /*如果newStartVnode存在key并且这个key在oldVnode中能找到则返回这个节点的索引*/
         idxInOld = isDef(newStartVnode.key)

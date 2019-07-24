@@ -1652,3 +1652,131 @@ export function createPatchFunction(backend) {
     }
   }
 ```
+
+### 模板编译
+
+模板编译的主要目标是：将模板(tempalte)转换为渲染函数(render)
+
+#### 模板编译的由来
+
+Vue2.0 需要用到 VNode 描述视图以及各种交互，手写显然不切实际，因此用户只需要编写类似 HTML 代码的 Vue 模板，通过编译器将模板转换为可返回 VNode 的 render 函数。
+
+#### 体验模板编译
+
+带编译器的版本中，可以使用 template 或 el 的方式声明模板
+
+```html
+<div id="demo">
+  <h1>Vue.js测试</h1>
+  <p>{{foo}}</p>
+</div>
+<script>
+  // 使用el方式
+  const app = new Vue({
+    data: { foo: 'foo' },
+    el: '#demo'
+  })
+  // 然后输出渲染函数
+  console.log(app.$options.render)
+</script>
+```
+
+> 输出结果大致如下：
+
+```js
+ƒunction anonymous() {
+    with (this) {
+        return _c('div', { attrs: { "id": "demo" } }, [
+        _c('h1', [_v("Vue.js测试")]),
+        _v(" "),
+        _c('p', [_v(_s(foo))])
+        ])
+    }
+}
+```
+
+> 元素节点使用 createElement 创建，别名\_c
+>
+> 本文节点使用 createTextVNode 创建，别名\_v
+>
+> 表达式先使用 toString 格式化，别名\_s
+
+#### 模板编译过程
+
+实现模板编译共有三个阶段：解析、优化和生成
+
+- 解析 - parse
+  src/compiler/parser/index.js - parse
+
+解析器将模板解析为抽象语法树 AST，只有将模板解析成 AST 后，才能基于它做优化或者生成代码字符串。
+
+调试查看得到的 AST，结构如下：
+
+解析器内部分了 HTML 解析器、文本解析器和过滤器解析器，最主要是 HTML 解析器，核心算法说明：
+
+```js
+// src/compiler/parser/index.js
+parseHTML(tempalte, {
+  start(tag, attrs, unary) {}, // 遇到开始标签的处理
+  end() {}, // 遇到结束标签的处理
+  chars(text) {}, // 遇到文本标签的处理
+  comment(text) {} // 遇到注释标签的处理
+})
+```
+
+- 优化 - optimize
+  优化器的作用是在 AST 中找出静态子树并打上标记。静态子树是在 AST 中永远不变的节点，如纯文本节点。
+
+标记静态子树的好处：
+
+每次重新渲染，不需要为静态子树创建新节点
+
+虚拟 DOM 中 patch 时，可以跳过静态子树
+
+标记过程有两步：
+
+1. 找出静态节点并标记
+2. 找出静态根节点并标记
+
+代码实现
+
+```js
+// src/compiler/optimizer.js - optimize
+export function optimize(root: ?ASTElement, options: CompilerOptions) {
+  if (!root) return
+  isStaticKey = genStaticKeysCached(options.staticKeys || '')
+  isPlatformReservedTag = options.isReservedTag || no
+  // first pass: mark all non-static nodes.
+  markStatic(root)
+  // second pass: mark static roots.
+  markStaticRoots(root, false)
+}
+```
+
+标记结束
+
+- 代码生成 - generate
+  将 AST 转换成渲染函数中的内容，即代码字符串。
+
+generate 方法生成渲染函数
+
+```js
+// src/compiler/codegen/index.js - generate
+export function generate(
+  ast: ASTElement | void,
+  options: CompilerOptions
+): CodegenResult {
+  const state = new CodegenState(options)
+  const code = ast ? genElement(ast, state) : '_c("div")'
+  return {
+    render: `with(this){return ${code}}`,
+    staticRenderFns: state.staticRenderFns
+  }
+}
+```
+
+> 生成的 code
+
+```js
+"_c('div',{attrs:{"id":"demo"}},[_c('h1',[_v("Vue.js测试")]),_v(" "),_c('p',[_v(_s(foo))])])"
+```
