@@ -1313,7 +1313,7 @@ return function patch(oldVnode, vnode, hydrating, removeOnly) {
 }
 ```
 
-### patchVnode
+#### patchVnode
 
 两个 VNode 类型相同，就执行更新操作，包括三种类型操作：属性更新 PROPS、文本更新 TEXT、子节点更新 REORDER
 
@@ -1419,7 +1419,7 @@ function patchVnode(
 }
 ```
 
-### updateChildren
+#### updateChildren
 
 updateChildren 主要作用是比对新旧两个 VNode 的 children 得出具体 DOM 操作。执行一个双循环是传统方式，vue 中针对 web 场景特点做了特别的算法优化：
 ![](https://upload-images.jianshu.io/upload_images/16753277-6c34183005864680.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
@@ -1619,7 +1619,7 @@ function updateChildren(
 }
 ```
 
-### 属性相关 dom 操作
+#### 属性相关 dom 操作
 
 原理是将属性相关 dom 操作按 vdom hooks 归类，在 patchVnode 时一起执行
 
