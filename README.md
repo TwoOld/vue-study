@@ -1243,7 +1243,7 @@ export default class VNode {
   parent: VNode | void; // component placeholder node
 ```
 
-### patch
+### patch 详解
 
 Vue 使用的 patching 算法基于 Snabbdom
 
