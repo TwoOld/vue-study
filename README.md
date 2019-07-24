@@ -1138,8 +1138,27 @@ Vue.prototype._render = function(): VNode {
 - createComponent
   > 用于创建组件并返回 VNode，src\core\vdom\create-component.js
 - VNode
-  > render 返回的一个 VNode 实例，它的 children 还是 VNode，最终构成一个树，就是虚拟 DOM 树， src\core\vdom\vnode.js
-  > VNode 对象：共有 6 种类型：元素、组件、函数式组件、文本、注释和克隆节点
+
+render 返回的一个 VNode 实例，它的 children 还是 VNode，最终构成一个树，就是虚拟 DOM 树
+
+```js
+// src\core\vdom\vnode.js
+// VNode对象共有6种类型：元素、组件、函数式组件、文本、注释和克隆节点
+// 静态节点可作为克隆节点，因为不会有变化 <h1>Hello</h1>
+export default class VNode {
+  tag: string | void // 节点标签，文本及注释没有
+  data: VNodeData | void // 节点数据，文本及注释没有
+  children: ?Array<VNode> // 子元素
+  text: string | void // 文本及注释的内容，元素文本
+  elm: Node | void
+  ns: string | void
+  context: Component | void // rendered in this component's scope
+  key: string | number | void
+  componentOptions: VNodeComponentOptions | void
+  componentInstance: Component | void // component instance 组件实例
+  parent: VNode | void // component placeholder node
+}
+```
 
 ##### \_update
 
@@ -1188,6 +1207,7 @@ Vue.prototype._update = function(vnode: VNode, hydrating?: boolean) {
 // src/platforms/web/runtime/index.js
 Vue.prototype.__patch__ = inBrowser ? patch : noop
 ```
+
 ##### patch
 
 实际就是 createPatchFunction 的返回值，传递 nodeOps 和 modules，这里主要是为了跨平台
@@ -1196,6 +1216,7 @@ Vue.prototype.__patch__ = inBrowser ? patch : noop
 // src\platforms\web\runtime\patch.js
 export const patch: Function = createPatchFunction({ nodeOps, modules })
 ```
+
 - nodeOps
 
 定义各种原生 dom 基础操作方法
@@ -1203,6 +1224,7 @@ export const patch: Function = createPatchFunction({ nodeOps, modules })
 ```js
 // src\platforms\web\runtime\node-ops.js
 ```
+
 - modules
 
 modules 定义了虚拟 dom 更新 => dom 操作转换方法
@@ -1224,23 +1246,6 @@ import platformModules from 'web/runtime/modules/index'
 // ]
 
 const modules = platformModules.concat(baseModules)
-```
-
-```js
-// VNode对象共有6种类型：元素、组件、函数式组件、文本、注释和克隆节点
-// 静态节点可作为克隆节点，因为不会有变化 <h1>Hello</h1>
-export default class VNode {
-  tag: string | void; // 节点标签，文本及注释没有
-  data: VNodeData | void; // 节点数据，文本及注释没有
-  children: ?Array<VNode>; // 子元素
-  text: string | void; // 文本及注释的内容，元素文本
-  elm: Node | void;
-  ns: string | void;
-  context: Component | void; // rendered in this component's scope
-  key: string | number | void;
-  componentOptions: VNodeComponentOptions | void;
-  componentInstance: Component | void; // component instance 组件实例
-  parent: VNode | void; // component placeholder node
 ```
 
 ### patch 详解
