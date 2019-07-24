@@ -1143,7 +1143,7 @@ Vue.prototype._render = function(): VNode {
 
 ##### \_update
 
-update 负责更新 dom，核心是调用 patch
+\_update 负责更新 dom，核心是调用 \_\_patch\_\_
 
 ```js
 // src\core\instance\lifecycle.js
@@ -1182,7 +1182,7 @@ Vue.prototype._update = function(vnode: VNode, hydrating?: boolean) {
 
 ##### \_\_patch\_\_
 
-patch 是在平台特有代码中指定的
+\_\_patch\_\_ 是在平台特有代码中指定的
 
 ```js
 // src/platforms/web/runtime/index.js
@@ -1196,14 +1196,14 @@ Vue.prototype.__patch__ = inBrowser ? patch : noop
 // src\platforms\web\runtime\patch.js
 export const patch: Function = createPatchFunction({ nodeOps, modules })
 ```
-##### nodeOps
+- nodeOps
 
 定义各种原生 dom 基础操作方法
 
 ```js
 // src\platforms\web\runtime\node-ops.js
 ```
-##### modules
+- modules
 
 modules 定义了虚拟 dom 更新 => dom 操作转换方法
 
