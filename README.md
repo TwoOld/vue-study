@@ -1780,3 +1780,93 @@ export function generate(
 ```js
 "_c('div',{attrs:{"id":"demo"}},[_c('h1',[_v("Vue.js测试")]),_v(" "),_c('p',[_v(_s(foo))])])"
 ```
+
+#### v-if、v-for
+
+着重观察几个结构性指令的解析过程
+
+```js
+// 解析v-if，parser/index.js
+function processIf(el) {
+  const exp = getAndRemoveAttr(el, 'v-if') // 获取v-if=“exp"中exp并删除v-if属性
+  if (exp) {
+    el.if = exp // 为ast添加if表示条件
+    addIfCondition(el, {
+      // 为ast添加ifConditions表示各种情况对应结果
+      exp: exp,
+      block: el
+    })
+  } else {
+    // 其他情况处理
+    if (getAndRemoveAttr(el, 'v-else') != null) {
+      el.else = true
+    }
+    const elseif = getAndRemoveAttr(el, 'v-else-if')
+    if (elseif) {
+      el.elseif = elseif
+    }
+  }
+}
+// 代码生成，codegen/index.js
+function genIfConditions(
+  conditions: ASTIfConditions,
+  state: CodegenState,
+  altGen?: Function,
+  altEmpty?: string
+): string {
+  const condition = conditions.shift() // 每次处理一个条件
+  if (condition.exp) {
+    // 每种条件生成一个三元表达式
+    return `(${condition.exp})?${genTernaryExp(
+      condition.block
+    )}:${genIfConditions(conditions, state, altGen, altEmpty)}`
+  } else {
+    return `${genTernaryExp(condition.block)}`
+  }
+  // v-if with v-once should generate code like (a)?_m(0):_m(1)
+  function genTernaryExp(el) {}
+}
+```
+
+### 插槽
+
+普通插槽是在父组件编译和渲染阶段生成 `vnodes` ，数据的作用域是父组件，子组件渲染的时候直接拿到这些渲染好的 `vnodes` 。
+
+作用域插槽，父组件在编译和渲染阶段并不会直接生成 `vnodes` ，而是在父节点保留一个 `scopedSlots` 对象，存储着不同名称的插槽以及它们对应的渲染函数，只有在编译和渲染子组件阶段才会执行这个渲染函数生成`vnodes` ，由于是在子组件环境执行的，所以对应的数据作用域是子组件实例。
+
+简单地说，两种插槽的目的都是让子组件 `slot` 占位符生成的内容由父组件来决定，但数据的作用域会根据它们 `vnodes` 渲染时机不同而不同。
+
+解析相关代码：
+
+```js
+// processSlotContent：处理<template v-slot:xxx="yyy">
+const slotBinding = getAndRemoveAttrByRegex(el, slotRE) // 查找v-slot:xxx
+if (slotBinding) {
+  const { name, dynamic } = getSlotName(slotBinding) // name是xxx
+  el.slotTarget = name // xxx赋值到slotTarget
+  el.slotTargetDynamic = dynamic
+  el.slotScope = slotBinding.value || emptySlotScopeToken // yyy赋值到slotScope
+}
+// processSlotOutlet：处理<slot>
+if (el.tag === 'slot') {
+  el.slotName = getBindingAttr(el, 'name') // 获取slot的name并赋值到slotName
+}
+```
+
+生成相关代码：
+
+```js
+// genScopedSlot：这里把slotScope作为形参转换为工厂函数返回内容
+const fn =
+  `function(${slotScope}){` +
+  `return ${
+    el.tag === 'template'
+      ? el.if && isLegacySyntax
+        ? `(${el.if})?${genChildren(el, state) || 'undefined'}:undefined`
+        : genChildren(el, state) || 'undefined'
+      : genElement(el, state)
+  }}`
+// reverse proxy v-slot without scope on this.$slots
+const reverseProxy = slotScope ? `` : `,proxy:true`
+return `{key:${el.slotTarget || `"default"`},fn:${fn}${reverseProxy}}`
+```
