@@ -12,7 +12,7 @@ src\core\instance\index.js Vue 构造函数
 
 ```js
 // Vue构造函数 new Vue()
-function Vue (options) {
+function Vue(options) {
   this._init(options)
 }
 
@@ -27,10 +27,9 @@ export default Vue
 
 ### initMixin(vue)
 
-实现_init
+实现\_init
 
 ```js
-
 // ---------------------- src\core\instance\init.js ----------------------
 
 // 初始化
@@ -84,7 +83,7 @@ if (listeners) {
 
 \$slots \$scopedSlots 初始化
 
-\$createElement函数声明
+\$createElement 函数声明
 
 \$attrs/\$listeners 响应化
 
@@ -173,9 +172,9 @@ Provide 注入
 
 ### stateMixin(Vue)
 
-定义只读属性\$data和\$props
+定义只读属性\$data 和\$props
 
-定义\$set和\$delete
+定义\$set 和\$delete
 
 定义\$watch
 
@@ -205,7 +204,7 @@ Vue.prototype.$watch = function(
 
 ### eventsMixin(Vue)
 
-实现事件相关实例api：\$on,\$emit,\$off,\$once
+实现事件相关实例 api：\$on,\$emit,\$off,\$once
 
 ```js
 // ---------------------- src\core\instance\events.js ----------------------
@@ -227,7 +226,7 @@ Vue.prototype.$emit = function(event: string): Component {}
 
 ### lifecycleMixin(Vue)
 
-实现组件生命周期相关的三个核心实例api：_update,\$forceUpdate,\$destroy
+实现组件生命周期相关的三个核心实例 api：\_update,\$forceUpdate,\$destroy
 
 ```js
 // ---------------------- src\core\instance\lifecycle.js ----------------------
@@ -255,7 +254,7 @@ Vue.prototype.$destroy = function() {}
 
 ### renderMixin(Vue)
 
-实现\$nextTick及_render函数
+实现\$nextTick 及\_render 函数
 
 ```js
 // ---------------------- src\core\instance\render.js ----------------------
@@ -335,7 +334,7 @@ export function initState(vm: Component) {
 
 ### initData()
 
-将data数据响应化
+将 data 数据响应化
 
 ```js
 function initData(vm: Component) {
@@ -373,7 +372,7 @@ function initData(vm: Component) {
 
 #### observe()
 
-返回一个Observer实例
+返回一个 Observer 实例
 
 ```js
 // ---------------------- src\core\observer\index.js ----------------------
@@ -454,7 +453,7 @@ export class Observer {
 
 #### defineReactive()
 
-定义对象属性的getter/setter，getter负责收集添加依赖，setter负责通知更新
+定义对象属性的 getter/setter，getter 负责收集添加依赖，setter 负责通知更新
 
 ```js
 export function defineReactive(
@@ -521,7 +520,7 @@ export function defineReactive(
 
 #### class Dep
 
-负责管理一组Watcher，包括watcher实例的增删及通知更新
+负责管理一组 Watcher，包括 watcher 实例的增删及通知更新
 
 ```js
 // ---------------------- src\core\observer\dep.js ----------------------
@@ -570,12 +569,11 @@ export default class Dep {
 
 #### class Watcher
 
-负责管理一组Watcher，包括watcher实例的增删及通知更新
+负责管理一组 Watcher，包括 watcher 实例的增删及通知更新
 
 ```js
 // ---------------------- src\core\observer\watcher.js ----------------------
 export default class Watcher {
-
   addDep(dep: Dep) {
     const id = dep.id
     if (!this.newDepIds.has(id)) {
@@ -601,7 +599,6 @@ export default class Watcher {
       queueWatcher(this)
     }
   }
-
 }
 ```
 
@@ -958,7 +955,7 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
   const p = Promise.resolve()
   timerFunc = () => {
     p.then(flushCallbacks)
-    
+
     if (isIOS) setTimeout(noop)
   }
   isUsingMicroTask = true
@@ -1012,10 +1009,130 @@ Vue 1.0 中有细粒度的数据变化侦测，每一个属性对应一个 Watch
 
 ### 虚拟 DOM 整体流程
 
-- mountComponent
-  > vdom 树首页生成、渲染发生在 mountComponent 中，core/instance/lifecycle.js
-- \_render
-  > \_render 生成虚拟 dom，core/instance/render.js
+##### mountComponent
+
+vdom 树首页生成、渲染发生在 mountComponent 中
+
+```js
+// core/instance/lifecycle.js
+export function mountComponent(
+  vm: Component,
+  el: ?Element,
+  hydrating?: boolean
+): Component {
+  vm.$el = el
+  if (!vm.$options.render) {
+    vm.$options.render = createEmptyVNode
+  }
+  callHook(vm, 'beforeMount')
+
+  let updateComponent
+  /* istanbul ignore if */
+  if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
+  } else {
+    // 调用 _render() 返回结果
+    updateComponent = () => {
+      vm._update(vm._render(), hydrating)
+    }
+  }
+
+  // we set this to vm._watcher inside the watcher's constructor
+  // since the watcher's initial patch may call $forceUpdate (e.g. inside child
+  // component's mounted hook), which relies on vm._watcher being already defined
+  new Watcher(
+    vm,
+    updateComponent,
+    noop,
+    {
+      before() {
+        if (vm._isMounted && !vm._isDestroyed) {
+          callHook(vm, 'beforeUpdate')
+        }
+      }
+    },
+    true /* isRenderWatcher */
+  )
+  hydrating = false
+
+  // manually mounted instance, call mounted on self
+  // mounted is called for render-created child components in its inserted hook
+  if (vm.$vnode == null) {
+    vm._isMounted = true
+    callHook(vm, 'mounted')
+  }
+  return vm
+}
+```
+
+##### \_render
+
+\_render 生成虚拟 dom
+
+```js
+// core/instance/render.js
+// renderMixin()
+Vue.prototype._render = function(): VNode {
+  const vm: Component = this
+  const { render, _parentVnode } = vm.$options
+
+  if (_parentVnode) {
+    vm.$scopedSlots = normalizeScopedSlots(
+      _parentVnode.data.scopedSlots,
+      vm.$slots,
+      vm.$scopedSlots
+    )
+  }
+
+  // set parent vnode. this allows render functions to have access
+  // to the data on the placeholder node.
+  vm.$vnode = _parentVnode
+  // render self
+  let vnode
+  try {
+    // There's no need to maintain a stack because all render fns are called
+    // separately from one another. Nested component's render fns are called
+    // when parent component is patched.
+    currentRenderingInstance = vm
+    // 组件实例作为上下文，获取 $createElement() 结果
+    vnode = render.call(vm._renderProxy, vm.$createElement)
+  } catch (e) {
+    handleError(e, vm, `render`)
+    // return error render result,
+    // or previous vnode to prevent render error causing blank component
+    /* istanbul ignore else */
+    if (process.env.NODE_ENV !== 'production' && vm.$options.renderError) {
+      try {
+        vnode = vm.$options.renderError.call(
+          vm._renderProxy,
+          vm.$createElement,
+          e
+        )
+      } catch (e) {
+        handleError(e, vm, `renderError`)
+        vnode = vm._vnode
+      }
+    } else {
+      vnode = vm._vnode
+    }
+  } finally {
+    currentRenderingInstance = null
+  }
+  // if the returned array contains only a single node, allow it
+  if (Array.isArray(vnode) && vnode.length === 1) {
+    vnode = vnode[0]
+  }
+  // return empty vnode in case the render function errored out
+  if (!(vnode instanceof VNode)) {
+    if (process.env.NODE_ENV !== 'production' && Array.isArray(vnode)) {
+    }
+    vnode = createEmptyVNode()
+  }
+  // set parent
+  vnode.parent = _parentVnode
+  return vnode
+}
+```
+
 - createElement
   > 真正用来创建 vnode 的函数是 createElement，src\core\vdom\create-element.js
 - createComponent
@@ -1023,18 +1140,91 @@ Vue 1.0 中有细粒度的数据变化侦测，每一个属性对应一个 Watch
 - VNode
   > render 返回的一个 VNode 实例，它的 children 还是 VNode，最终构成一个树，就是虚拟 DOM 树， src\core\vdom\vnode.js
   > VNode 对象：共有 6 种类型：元素、组件、函数式组件、文本、注释和克隆节点
-- \_update
-  > update 负责更新 dom，核心是调用 patch ，src\core\instance\lifecycle.js
-- \_\_patch\_\_
-  > patch 是在平台特有代码中指定的， src/platforms/web/runtime/index.js
-  > Vue.prototype. patch = inBrowser ? patch : noop
-- patch
-  > 实际就是 createPatchFunction 的返回值，传递 nodeOps 和 modules，这里主要是为了跨平台
-  > export const patch: Function = createPatchFunction({ nodeOps, modules })
-- nodeOps
-  > src\platforms\web\runtime\node-ops.js 定义各种原生 dom 基础操作方法
-- modules
-  > modules 定义了虚拟 dom 更新 => dom 操作转换方法
+
+##### \_update
+
+update 负责更新 dom，核心是调用 patch
+
+```js
+// src\core\instance\lifecycle.js
+// lifecycleMixin()
+Vue.prototype._update = function(vnode: VNode, hydrating?: boolean) {
+  const vm: Component = this
+  const prevEl = vm.$el
+  const prevVnode = vm._vnode
+  const restoreActiveInstance = setActiveInstance(vm)
+  vm._vnode = vnode
+  // Vue.prototype.__patch__ is injected in entry points
+  // based on the rendering backend used.
+  if (!prevVnode) {
+    // initial render
+    vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
+  } else {
+    // updates
+    vm.$el = vm.__patch__(prevVnode, vnode)
+  }
+  restoreActiveInstance()
+  // update __vue__ reference
+  if (prevEl) {
+    prevEl.__vue__ = null
+  }
+  if (vm.$el) {
+    vm.$el.__vue__ = vm
+  }
+  // if parent is an HOC, update its $el as well
+  if (vm.$vnode && vm.$parent && vm.$vnode === vm.$parent._vnode) {
+    vm.$parent.$el = vm.$el
+  }
+  // updated hook is called by the scheduler to ensure that children are
+  // updated in a parent's updated hook.
+}
+```
+
+##### \_\_patch\_\_
+
+patch 是在平台特有代码中指定的
+
+```js
+// src/platforms/web/runtime/index.js
+Vue.prototype.__patch__ = inBrowser ? patch : noop
+```
+##### patch
+
+实际就是 createPatchFunction 的返回值，传递 nodeOps 和 modules，这里主要是为了跨平台
+
+```js
+// src\platforms\web\runtime\patch.js
+export const patch: Function = createPatchFunction({ nodeOps, modules })
+```
+##### nodeOps
+
+定义各种原生 dom 基础操作方法
+
+```js
+// src\platforms\web\runtime\node-ops.js
+```
+##### modules
+
+modules 定义了虚拟 dom 更新 => dom 操作转换方法
+
+```js
+import baseModules from 'core/vdom/modules/index'
+// export default [
+//   ref,
+//   directives
+// ]
+import platformModules from 'web/runtime/modules/index'
+// export default [
+//   attrs,
+//   klass,
+//   events,
+//   domProps,
+//   style,
+//   transition
+// ]
+
+const modules = platformModules.concat(baseModules)
+```
 
 ```js
 // VNode对象共有6种类型：元素、组件、函数式组件、文本、注释和克隆节点
