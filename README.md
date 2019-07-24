@@ -1712,6 +1712,9 @@ Vue2.0 需要用到 VNode 描述视图以及各种交互，手写显然不切实
 
 调试查看得到的 AST，结构如下：
 
+![](https://upload-images.jianshu.io/upload_images/16753277-0164b52285ddab54.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+
 解析器内部分了 HTML 解析器、文本解析器和过滤器解析器，最主要是 HTML 解析器，核心算法说明：
 
 ```js
@@ -1754,6 +1757,9 @@ export function optimize(root: ?ASTElement, options: CompilerOptions) {
 ```
 
 标记结束
+
+![](https://upload-images.jianshu.io/upload_images/16753277-ab7e36f1faebd09e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
 
 - 代码生成 - generate
   将 AST 转换成渲染函数中的内容，即代码字符串。
