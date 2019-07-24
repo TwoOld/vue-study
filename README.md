@@ -1139,7 +1139,7 @@ Vue.prototype._render = function(): VNode {
   > 用于创建组件并返回 VNode，src\core\vdom\create-component.js
 - VNode
 
-render 返回的一个 VNode 实例，它的 children 还是 VNode，最终构成一个树，就是虚拟 DOM 树
+\_render 返回的一个 VNode 实例，它的 children 还是 VNode，最终构成一个树，就是虚拟 DOM 树
 
 ```js
 // src\core\vdom\vnode.js
