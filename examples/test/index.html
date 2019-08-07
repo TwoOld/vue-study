@@ -1,33 +1,55 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Document</title>
-</head>
+  </head>
 
-<body>
+  <body>
     <div id="app">
-        <p @click='test="hello"'>{{test}}</p>
-        <p @click='handleArr'>{{arr}}</p>
+      <p @click='test="hello"'>{{ test }}</p>
+      <p @click="handleArr">{{ arr }}</p>
+      <p @click="handleComputed">{{ list }}</p>
     </div>
-    <script src='../../dist/vue.js'></script>
-    <script>        
-        const app = new Vue({
-            el: '#app',
-            data: {
-                test: 'kaikeba',
-                arr: ['a', 'b']
+    <script src="../../dist/vue.js"></script>
+    <script>
+      const app = new Vue({
+        el: '#app',
+        data: {
+          test: 'kaikeba',
+          arr: ['a', 'b'],
+          temp: {
+            list: ['a', 'b']
+          }
+        },
+        watch: {
+          test: function(val) {
+            console.log(val)
+          }
+        },
+        computed: {
+          list: {
+            get: function() {
+              return this.temp.list
             },
-            methods: {
-                handleArr() {
-                    this.arr.push('c')
-                }
+            set: function(newVal) {
+              this.temp.list = newVal
             }
-        }) 
+          }
+        },
+        methods: {
+          handleArr() {
+            this.arr.push('c')
+          },
+          handleComputed() {
+            //   this.list.push('c')
+            this.list = 'a'
+            console.log(this.temp.list)
+          }
+        }
+      })
     </script>
-</body>
-
+  </body>
 </html>
