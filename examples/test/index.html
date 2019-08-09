@@ -10,7 +10,9 @@
   <body>
     <div id="app">
       <p @click='test="hello"'>{{ test }}</p>
+      <p v-if="objFlag<2">{{ obj.name + ' ' + obj.age }}</p>
       <p @click="handleArr">{{ arr }}</p>
+      <p @click="handleObj">{{ arr[arr.length - 1] }}</p>
       <p @click="handleComputed">{{ list }}</p>
     </div>
     <script src="../../dist/vue.js"></script>
@@ -20,9 +22,14 @@
         data: {
           test: 'kaikeba',
           arr: ['a', 'b'],
+          obj: {
+            name: 'Chiu',
+            age: 29
+          },
           temp: {
             list: ['a', 'b']
-          }
+          },
+          objFlag: 0
         },
         watch: {
           test: function(val) {
@@ -43,6 +50,18 @@
           handleArr() {
             this.arr.push('c')
             this.arr.push('d')
+          },
+          handleObj() {
+            if (this.objFlag % 4 === 0) {
+              this.obj.job = 'FE'
+            } else if (this.objFlag % 4 === 1) {
+              this.obj = { name: 'Archie', age: 29, job: 'FE' }
+            } else if (this.objFlag % 4 === 2) {
+              this.obj.name = 'Chiu'
+            } else if (this.objFlag % 4 === 3) {
+              this.obj = { name: 'Archie', age: 29 }
+            }
+            this.objFlag++
           },
           handleComputed() {
             //   this.list.push('c')

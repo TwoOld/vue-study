@@ -38,7 +38,7 @@ export function toggleObserving(value: boolean) {
  */
 export class Observer {
   value: any
-  dep: Dep // 保存数组类型数据的依赖
+  dep: Dep // 用于保存 数组 的依赖 对象则使用属性key对应的依赖
   vmCount: number // number of vms that have this object as root $data
 
   constructor(value: any) {
