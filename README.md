@@ -44,131 +44,131 @@ initProvide(vm) // resolve provide after data/props
 callHook(vm, 'created')
 ```
 
-#### initLifecycle(vm)
+- initLifecycle(vm)
 
-把组件实例里面用到的常用属性初始化，比如\$parent,\$root,\$children
+  把组件实例里面用到的常用属性初始化，比如\$parent,\$root,\$children
 
-```js
-// ---------------------- src\core\instance\lifecycle.js ----------------------
-vm.$parent = parent
-vm.$root = parent ? parent.$root : vm
+  ```js
+  // ---------------------- src\core\instance\lifecycle.js ----------------------
+  vm.$parent = parent
+  vm.$root = parent ? parent.$root : vm
 
-vm.$children = []
-vm.$refs = {}
+  vm.$children = []
+  vm.$refs = {}
 
-vm._watcher = null
-vm._inactive = null
-vm._directInactive = false
-vm._isMounted = false
-vm._isDestroyed = false
-vm._isBeingDestroyed = false
-```
+  vm._watcher = null
+  vm._inactive = null
+  vm._directInactive = false
+  vm._isMounted = false
+  vm._isDestroyed = false
+  vm._isBeingDestroyed = false
+  ```
 
-#### initEvents(Vue)
+- initEvents(Vue)
 
-父组件传递的需要处理的事件 ps:事件的监听者实际是子组件
+  父组件传递的需要处理的事件 ps:事件的监听者实际是子组件
 
-```js
-// ---------------------- src\core\instance\events.js ----------------------
-vm._events = Object.create(null)
-vm._hasHookEvent = false
-// init parent attached events
-const listeners = vm.$options._parentListeners
-if (listeners) {
-  updateComponentListeners(vm, listeners)
-}
-```
+  ```js
+  // ---------------------- src\core\instance\events.js ----------------------
+  vm._events = Object.create(null)
+  vm._hasHookEvent = false
+  // init parent attached events
+  const listeners = vm.$options._parentListeners
+  if (listeners) {
+    updateComponentListeners(vm, listeners)
+  }
+  ```
 
-#### initRender(Vue)
+- initRender(Vue)
 
-\$slots \$scopedSlots 初始化
+  \$slots \$scopedSlots 初始化
 
-\$createElement 函数声明
+  \$createElement 函数声明
 
-\$attrs/\$listeners 响应化
+  \$attrs/\$listeners 响应化
 
-```js
-// ---------------------- src\core\instance\render.js ----------------------
-vm._vnode = null // the root of the child tree
-vm._staticTrees = null // v-once cached trees
-const options = vm.$options
-const parentVnode = (vm.$vnode = options._parentVnode) // the placeholder node in parent tree
-const renderContext = parentVnode && parentVnode.context
-// 处理插槽
-vm.$slots = resolveSlots(options._renderChildren, renderContext)
-vm.$scopedSlots = emptyObject
+  ```js
+  // ---------------------- src\core\instance\render.js ----------------------
+  vm._vnode = null // the root of the child tree
+  vm._staticTrees = null // v-once cached trees
+  const options = vm.$options
+  const parentVnode = (vm.$vnode = options._parentVnode) // the placeholder node in parent tree
+  const renderContext = parentVnode && parentVnode.context
+  // 处理插槽
+  vm.$slots = resolveSlots(options._renderChildren, renderContext)
+  vm.$scopedSlots = emptyObject
 
-// 把createElement函数挂载到当前组件上，编译器使用
-vm._c = (a, b, c, d) => createElement(vm, a, b, c, d, false)
+  // 把createElement函数挂载到当前组件上，编译器使用
+  vm._c = (a, b, c, d) => createElement(vm, a, b, c, d, false)
 
-// 用户编写的渲染函数使用这个
-vm.$createElement = (a, b, c, d) => createElement(vm, a, b, c, d, true)
+  // 用户编写的渲染函数使用这个
+  vm.$createElement = (a, b, c, d) => createElement(vm, a, b, c, d, true)
 
-// $attrs & $listeners are exposed for easier HOC creation.
-// they need to be reactive so that HOCs using them are always updated
-const parentData = parentVnode && parentVnode.data
+  // $attrs & $listeners are exposed for easier HOC creation.
+  // they need to be reactive so that HOCs using them are always updated
+  const parentData = parentVnode && parentVnode.data
 
-/* istanbul ignore else */
-if (process.env.NODE_ENV !== 'production') {
-} else {
-  defineReactive(
-    vm,
-    '$attrs',
-    (parentData && parentData.attrs) || emptyObject,
-    null,
-    true
-  )
-  defineReactive(
-    vm,
-    '$listeners',
-    options._parentListeners || emptyObject,
-    null,
-    true
-  )
-}
-```
+  /* istanbul ignore else */
+  if (process.env.NODE_ENV !== 'production') {
+  } else {
+    defineReactive(
+      vm,
+      '$attrs',
+      (parentData && parentData.attrs) || emptyObject,
+      null,
+      true
+    )
+    defineReactive(
+      vm,
+      '$listeners',
+      options._parentListeners || emptyObject,
+      null,
+      true
+    )
+  }
+  ```
 
-#### initInjections(Vue)
+- initInjections(Vue)
 
-Inject 响应化
+  Inject 响应化
 
-```js
-// src\core\instance\inject.js
-```
+  ```js
+  // src\core\instance\inject.js
+  ```
 
-#### initState(Vue)
+- initState(Vue)
 
-执行各种数据状态初始化，包括数据响应化等
+  执行各种数据状态初始化，包括数据响应化等
 
-```js
-// ---------------------- src\core\instance\state.js ----------------------
-vm._watchers = []
-// 初始化所有属性
-const opts = vm.$options
-if (opts.props) initProps(vm, opts.props)
-// 初始化回调函数
-if (opts.methods) initMethods(vm, opts.methods)
-// data数据响应化
-if (opts.data) {
-  initData(vm)
-} else {
-  observe((vm._data = {}), true /* asRootData */)
-}
-//   computed初始化
-if (opts.computed) initComputed(vm, opts.computed)
-//   watch初始化
-if (opts.watch && opts.watch !== nativeWatch) {
-  initWatch(vm, opts.watch)
-}
-```
+  ```js
+  // ---------------------- src\core\instance\state.js ----------------------
+  vm._watchers = []
+  // 初始化所有属性
+  const opts = vm.$options
+  if (opts.props) initProps(vm, opts.props)
+  // 初始化回调函数
+  if (opts.methods) initMethods(vm, opts.methods)
+  // data数据响应化
+  if (opts.data) {
+    initData(vm)
+  } else {
+    observe((vm._data = {}), true /* asRootData */)
+  }
+  //   computed初始化
+  if (opts.computed) initComputed(vm, opts.computed)
+  //   watch初始化
+  if (opts.watch && opts.watch !== nativeWatch) {
+    initWatch(vm, opts.watch)
+  }
+  ```
 
-#### initProvide(Vue)
+- initProvide(Vue)
 
-Provide 注入
+  Provide 注入
 
-```js
-// src\core\instance\inject.js
-```
+  ```js
+  // src\core\instance\inject.js
+  ```
 
 ### stateMixin(Vue)
 
@@ -1714,7 +1714,6 @@ Vue2.0 需要用到 VNode 描述视图以及各种交互，手写显然不切实
 
 ![](https://upload-images.jianshu.io/upload_images/16753277-0164b52285ddab54.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
-
 解析器内部分了 HTML 解析器、文本解析器和过滤器解析器，最主要是 HTML 解析器，核心算法说明：
 
 ```js
@@ -1759,7 +1758,6 @@ export function optimize(root: ?ASTElement, options: CompilerOptions) {
 标记结束
 
 ![](https://upload-images.jianshu.io/upload_images/16753277-ab7e36f1faebd09e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-
 
 - 代码生成 - generate
   将 AST 转换成渲染函数中的内容，即代码字符串。
