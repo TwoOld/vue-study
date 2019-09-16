@@ -14,9 +14,22 @@
       <p @click="handleArr">{{ arr }}</p>
       <p @click="handleObj">{{ arr[arr.length - 1] }}</p>
       <p @click="handleComputed">{{ list }}</p>
+      <test></test>
     </div>
     <script src="../../dist/vue.js"></script>
     <script>
+      Vue.component('test', {
+        data: function() {
+          return {
+            c: 'component',
+            vm: this,
+          }
+        },
+        template: '<div><div>{{c}}</div></div>',
+        mounted: function() {
+          console.log(this.vm)
+        },
+      })
       const app = new Vue({
         el: '#app',
         data: {
@@ -24,17 +37,17 @@
           arr: ['a', 'b'],
           obj: {
             name: 'Chiu',
-            age: 29
+            age: 29,
           },
           temp: {
-            list: ['a', 'b']
+            list: ['a', 'b'],
           },
-          objFlag: 0
+          objFlag: 0,
         },
         watch: {
           test: function(val) {
             console.log(val)
-          }
+          },
         },
         computed: {
           list: {
@@ -43,8 +56,8 @@
             },
             set: function(newVal) {
               this.temp.list = newVal
-            }
-          }
+            },
+          },
         },
         methods: {
           handleArr() {
@@ -67,8 +80,8 @@
             //   this.list.push('c')
             this.list = 'a'
             console.log(this.temp.list)
-          }
-        }
+          },
+        },
       })
     </script>
   </body>
