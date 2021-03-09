@@ -9,12 +9,24 @@
 
   <body>
     <div id="app">
-      <p @click='test="hello"'>{{ test }}</p>
-      <p v-if="objFlag<2">{{ obj.name + ' ' + obj.age }}</p>
+      <!-- <p @click='test="hello"'>{{ test }}</p>
+      <p v-if="objFlag<2" @click="handleMix">
+        {{
+          obj.name +
+            ' ' +
+            obj.age +
+            ' ' +
+            obj.test +
+            ' ' +
+            (obj.mix[0] && obj.mix[0].name) +
+            ' ' +
+            (obj.mix[0] && obj.mix[0].age)
+        }}
+      </p> -->
       <p @click="handleArr">{{ arr }}</p>
-      <p @click="handleObj">{{ arr[arr.length - 1] }}</p>
-      <p @click="handleComputed">{{ list }}</p>
-      <test></test>
+      <!-- <p @click="handleObj">{{ arr[arr.length - 1] }}</p>
+      <p @click="handleComputed">{{ list }}</p> -->
+      <!-- <test v-if="obj.mix[0]"></test> -->
     </div>
     <script src="../../dist/vue.js"></script>
     <script>
@@ -22,44 +34,59 @@
         data: function() {
           return {
             c: 'component',
-            vm: this,
+            vm: this
           }
         },
         template: '<div><div>{{c}}</div></div>',
         mounted: function() {
           console.log(this.vm)
-        },
+        }
       })
       const app = new Vue({
         el: '#app',
         data: {
           test: 'kaikeba',
-          arr: ['a', 'b'],
-          obj: {
-            name: 'Chiu',
-            age: 29,
-          },
-          temp: {
-            list: ['a', 'b'],
-          },
-          objFlag: 0,
+          arr: ['a', 'b']
+          // obj: {
+          //   name: 'Chiu',
+          //   age: 29,
+          //   mix: []
+          // },
+          // temp: {
+          //   list: ['a', 'b']
+          // },
+          // objFlag: 0
         },
-        watch: {
-          test: function(val) {
-            console.log(val)
-          },
-        },
-        computed: {
-          list: {
-            get: function() {
-              return this.temp.list
-            },
-            set: function(newVal) {
-              this.temp.list = newVal
-            },
-          },
-        },
+        // watch: {
+        //   test: function(val) {
+        //     console.log(val)
+        //   }
+        // },
+        // computed: {
+        //   list: {
+        //     get: function() {
+        //       return this.temp.list
+        //     },
+        //     set: function(newVal) {
+        //       this.temp.list = newVal
+        //     }
+        //   }
+        // },
         methods: {
+          handleMix() {
+            if (this.obj.mix[0]) {
+              // this.obj.mix.push({ name: 'noVal' })
+              // this.obj.mix = [{ name: 'has val' }]
+              // this.obj.mix[0].name = 'change name'
+              this.obj.mix[0].age = 'no age'
+              this.obj.test = 'test again'
+            } else {
+              this.obj.mix.push({ name: 'noVal' })
+              this.$set(this.obj, 'test', 'set test')
+              // this.obj.age += 1
+            }
+            console.log(this.obj)
+          },
           handleArr() {
             this.arr.push('c')
             this.arr.push('d')
@@ -80,8 +107,8 @@
             //   this.list.push('c')
             this.list = 'a'
             console.log(this.temp.list)
-          },
-        },
+          }
+        }
       })
     </script>
   </body>

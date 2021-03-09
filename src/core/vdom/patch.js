@@ -529,6 +529,7 @@ export function createPatchFunction(backend) {
       vnode = ownerArray[index] = cloneVNode(vnode)
     }
 
+    // 相同节点复用老节点的DOM
     const elm = vnode.elm = oldVnode.elm
 
     if (isTrue(oldVnode.isAsyncPlaceholder)) {
@@ -572,7 +573,7 @@ export function createPatchFunction(backend) {
     }
 
     // 开始判断children的各种情况
-    // VNode节点没有text文本时
+    // 新节点没有text文本时
     if (isUndef(vnode.text)) {
       // 新老节点均有children子节点，则对子节点进行diff操作，调用updateChildren
       if (isDef(oldCh) && isDef(ch)) {
@@ -581,7 +582,7 @@ export function createPatchFunction(backend) {
         if (process.env.NODE_ENV !== 'production') {
           checkDuplicateKeys(ch)
         }
-        // 如果老节点没有子节点而新节点存在子节点，清空elm的文本内容，然后为当前节点加入子节点
+        // 如果新节点存在子节点且老节点存在text文本，清空elm的文本内容，然后为当前节点加入子节点
         if (isDef(oldVnode.text)) nodeOps.setTextContent(elm, '')
         addVnodes(elm, null, ch, 0, ch.length - 1, insertedVnodeQueue)
       } else if (isDef(oldCh)) {

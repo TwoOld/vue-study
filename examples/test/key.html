@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+  </head>
+
+  <body>
+    <div id="app">
+        <Child v-for="item,i in arr" :text="item" @delete="remove(i)"/>
+    </div>
+    <script src="../../dist/vue.js"></script>
+    <script>
+      Vue.component('Child', {
+        name: "Child",
+        props: ["text"],
+        data() {
+          return {
+            x: "hi",
+            time: undefined,
+          }
+        },
+        watch: {
+            text(val) {
+                console.log('text', val);
+            }
+        },
+        template: '<div>    {{ text }} {{ time }}    <input v-model="x" />    <button @click="onDelete">delete</button>  </div>',
+        mounted() {
+            // setTimeout(() => {
+            //     this.time = +new Date();
+            // }, 1500);
+        },
+        methods: {
+            onDelete() {
+                this.$emit("delete");
+            },
+        },
+      })
+      const app = new Vue({
+        el: '#app',
+        data: {
+          arr: ['a', 'b', 'c']
+        },
+        methods: {
+            remove(i) {
+                this.arr.splice(i, 1);
+            }
+        }
+      })
+    </script>
+  </body>
+</html>
