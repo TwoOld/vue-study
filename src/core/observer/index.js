@@ -168,7 +168,9 @@ export function defineReactive(
     val = obj[key]
   }
 
+  // 如果当前值是对象
   // 递归执行子对象响应化
+  // 并返回当前对象的 ob 用于依赖收集
   let childOb = !shallow && observe(val)
   // 定义当前对象getter/setter
   Object.defineProperty(obj, key, {
@@ -179,11 +181,13 @@ export function defineReactive(
       // getter被调用时若存在依赖则追加
       if (Dep.target) {
         dep.depend()
-        // 若存在子observer，则依赖也追加到子ob
+        // 若当前获取的值为对象
+        // 则调用 new Observer 实例中的 dep 收集依赖
+        // 用于 Vue.set 及 数组 响应
         if (childOb) {
           childOb.dep.depend()
           if (Array.isArray(value)) {
-            dependArray(value) // 数组需要特殊处理
+            dependArray(value) // 数组中也可能存在对象，需要特殊处理
           }
         }
       }

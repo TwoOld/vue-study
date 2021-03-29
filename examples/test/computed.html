@@ -11,6 +11,8 @@
     <div id="app">
       <h2 @click="testC">{{ person }}</h2>
       <p @click="test">{{ age }}</p>
+      <p @click="test">{{ toArr }}</p>
+      <p @click="test">{{ toAdd.toDep }}</p>
     </div>
     <script>
       const app = new Vue({
@@ -18,7 +20,11 @@
         data() {
           return {
             name: 'A',
-            age: 29
+            age: 29,
+            toAdd: {
+              history: 'none'
+            },
+            toArr: ['a', 'b', 'c']
           }
         },
         computed: {
@@ -33,7 +39,8 @@
         },
         methods: {
           test() {
-            this.age++
+            // this.age++
+            Vue.set(this.toAdd, 'toDep', 'hello')
           },
           testC() {
             this.name === 'A' ? (this.name = 'a') : (this.name = 'A')
